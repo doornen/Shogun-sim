@@ -1,0 +1,4 @@
+GAMMAINPUT ./input/137Cs.in
+NUMBEROFEVENTS 100000
+OUTPUTFILE ../SimulationResults/Generator/efficiency/137Cs.root
+END 

@@ -1,0 +1,4 @@
+GAMMAINPUT ./input/calibrationSources/12C.in
+NUMBEROFEVENTS 1000000
+OUTPUTFILE ../SimulationResults/Generator/efficiency/12C.root
+END 

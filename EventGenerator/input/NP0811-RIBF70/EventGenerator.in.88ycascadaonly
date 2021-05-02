@@ -1,0 +1,4 @@
+GAMMAINPUT ./input/NP0811-RIBF70/88ycascadeonly.in
+NUMBEROFEVENTS 1000000
+OUTPUTFILE ../SimulationResults/Generator/efficiency/88ycascadeonly.root
+END 

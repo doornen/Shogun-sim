@@ -1,0 +1,4 @@
+GAMMAINPUT 88ycascadeonly.in
+NUMBEROFEVENTS 1000000
+OUTPUTFILE Gen88ycascadeonly.root
+END 

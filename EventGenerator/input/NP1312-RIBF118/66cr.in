@@ -1,0 +1,10 @@
+LEVEL 0   0.     0.   0.
+LEVEL 1   0.   500.  40.
+LEVEL 2   0.  1300.  10.  
+LEVEL 3   50.  2400.  5.
+LEVEL 4   50.  2600.  5.   
+DECAY 1 0 100.
+DECAY 2 1 100.
+DECAY 3 2 100. 
+DECAY 4 2 100.     
+END

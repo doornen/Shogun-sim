@@ -1,0 +1,4 @@
+GAMMAINPUT ./input/60Co.in
+NUMBEROFEVENTS 1000000
+OUTPUTFILE ../SimulationResults/Generator/Efficiency/60Co.root
+END 

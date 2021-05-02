@@ -1,0 +1,10 @@
+LEVEL 0   0.    0.  0.
+LEVEL 1   0. 1221.  1.0  
+LEVEL 2   0. 8000.  0.1
+LEVEL 3   100. 10000. 0.1    
+DECAY 1 0 100.
+DECAY 2 0 100.
+DECAY 3 1  100.
+DECAY 3 0  00.
+END
+

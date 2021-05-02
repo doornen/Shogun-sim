@@ -1,0 +1,6 @@
+LEVEL 0   0.    0.    0.
+LEVEL 1  90.  446.  198.
+LEVEL 2   10. 1178.   11.5
+DECAY 1 0 100.
+DECAY 2 1 100.
+END

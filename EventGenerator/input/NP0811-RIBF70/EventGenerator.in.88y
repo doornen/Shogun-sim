@@ -1,0 +1,4 @@
+GAMMAINPUT ./input/NP0811-RIBF70/88y.in
+NUMBEROFEVENTS 1000000
+OUTPUTFILE ../SimulationResults/Generator/efficiency/88y.root
+END 

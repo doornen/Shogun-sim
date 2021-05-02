@@ -1,0 +1,6 @@
+LEVEL 0   0.     0.    0.
+LEVEL 1 100.   500.  184.
+LEVEL 2  50.   650.   50.  
+DECAY 1 0 100.
+DECAY 2 1 100
+END

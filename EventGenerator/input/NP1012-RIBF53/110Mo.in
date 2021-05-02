@@ -1,0 +1,8 @@
+LEVEL 0   0.    0.  0.
+LEVEL 1   14960.    214.  600.
+LEVEL 2   7480.    600.  1.
+LEVEL 3   7480.    1132.  1.
+DECAY 1 0 100.
+DECAY 2 1 100.
+DECAY 3 2 100.
+END

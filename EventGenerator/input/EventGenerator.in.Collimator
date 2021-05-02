@@ -1,0 +1,6 @@
+GAMMAINPUT ./input/137Cs.in
+NUMBEROFEVENTS 1000000
+BEAMPOSITION 0 .3 0 .3
+OUTPUTFILE ../SimulationResults/Generator/Shogun/Collimator/137Cs3mm.root
+THETARANGE 0. 90.
+END 
