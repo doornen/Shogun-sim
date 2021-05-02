@@ -1,0 +1,5 @@
+INPUTFILE ../SimulationResults/Builder/Dali2/Efficiency/Dali2260Co1mmPbShield.root
+OUTPUTFILE ../SimulationResults/Reconstructor/Dali2/Efficiency/Dali2260Co1mmPbShield.root
+SPECTRABINANDRANGE 400 0. 4000.
+ADDBACK 1 15
+END

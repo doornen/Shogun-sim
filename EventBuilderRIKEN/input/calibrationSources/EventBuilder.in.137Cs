@@ -1,0 +1,7 @@
+INPUTFILE ../SimulationResults/Generator/efficiency/137Cs.root
+OUTPUTFILE ../SimulationResults/Builder/dali2/efficiency/137Cs.root
+DALI2INCLUDE 1
+BEAMPIPEINCLUDE 1
+TARGETHOLDERINCLUDE 1
+DALI2ENERGYRESOLUTION 2 2.2795 0.5
+END

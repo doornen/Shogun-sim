@@ -1,0 +1,8 @@
+INPUTFILE ../../../SimulationResults/Builder/Dali2/62cr/62cr62cr200mev.root
+OUTPUTFILE ../../../SimulationResults/Reconstructor/Dali2/62cr/62cr62cr200mev.root
+SPECTRABINANDRANGE 400 0. 2000.
+FIFIND 0
+DECAYPOSITIONZ 0.0
+BETATOFAVERAGE 0.5677
+BETADOPPLERAVERAGE 0.4717
+END 

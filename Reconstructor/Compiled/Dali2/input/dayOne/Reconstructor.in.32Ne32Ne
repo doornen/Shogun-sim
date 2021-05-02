@@ -1,0 +1,8 @@
+INPUTFILE ../../../SimulationResults/Builder/Dali2/32ne/32ne_32ne_43ps.root
+OUTPUTFILE ../../../SimulationResults/Reconstructor/Dali2/32ne/32ne_32ne_43ps.root
+SPECTRABINANDRANGE 160 0. 4000.
+FIFIND 2
+DECAYPOSITIONZ 1.33
+BETATOFAVERAGE 0.607
+BETADOPPLERAVERAGE 0.5828
+END 

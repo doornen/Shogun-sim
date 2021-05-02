@@ -1,0 +1,4 @@
+INPUTFILE ../../../SimulationResults/Builder/dali2/efficiency/60CoNoResolution.root
+OUTPUTFILE ../../../SimulationResults/Reconstructor/dali2/efficiency/60CoNoResolution.root
+SPECTRABINANDRANGE 400 0. 4000.
+END 

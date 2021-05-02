@@ -1,0 +1,7 @@
+INPUTFILE ../SimulationResults/Builder/Shogun/62cr/Case28_62cr_200mev_1500mgBe_132ps.root
+OUTPUTFILE ../SimulationResults/Reconstructor/Shogun/62cr/Case28_62cr_200mev_1500mgBe_132ps_rightbeta.root
+SPECTRABINANDRANGE 1000 0. 5000.
+BETADOPPLERAVERAGE 0.530
+BETATOFAVERAGE 0.568698
+DECAYPOSITIONZ 0.0
+END 

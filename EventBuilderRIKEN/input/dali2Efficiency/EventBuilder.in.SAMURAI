@@ -1,0 +1,5 @@
+INPUTFILE ../SimulationResults/Generator/efficiency/50keV.root
+OUTPUTFILE ../SimulationResults/Builder/Dali2/Efficiency/50keV_samurai.root
+DALI2INCLUDE 1
+DALI2ENERGYRESOLUTION 2 0.0 0.5
+END

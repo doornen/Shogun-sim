@@ -1,0 +1,8 @@
+INPUTFILE ../../../SimulationResults/Builder/dali2/32ne/33na_32ne260mev_700kev_nores30ps.root
+OUTPUTFILE ../../../SimulationResults/Reconstructor/dali2/32ne/33na_32ne241mev_700kev_nores30ps_doppfor50ps.root
+SPECTRABINANDRANGE 400 0. 4000.
+FIFIND 0
+DECAYPOSITIONZ 1.636
+BETATOFAVERAGE 0.6235
+BETADOPPLERAVERAGE 0.5991
+END 

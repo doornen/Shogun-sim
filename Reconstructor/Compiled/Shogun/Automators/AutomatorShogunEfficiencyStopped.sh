@@ -1,0 +1,32 @@
+#!/bin/bash
+
+INPUTFILE="INPUTFILE ../../../SimulationResults/Builder/Shogun/Efficiency/Case"
+FILEEXT0="_"
+FILEEXT1="keVStopped.root"
+OUTPUTFILE="OUTPUTFILE ../../../SimulationResults/Reconstructor/Shogun/Efficiency/Case"
+SPECTRABINANDRANGE="SPECTRABINANDRANGE 1000 0. 5000."
+BETADOPPLERAVERAGE="BETADOPPLERAVERAGE 0"
+BETATOFAVERAGE="BETATOFAVERAGE 0"
+END="END"
+
+FILE="./input/ShogunReconstructor.in"
+
+for arg2 in 500 1000 1500 2000 2500 3000 
+do
+echo ""$INPUTFILE$1$FILEEXT0$arg2$FILEEXT1"
+"$OUTPUTFILE$1$FILEEXT0$arg2$FILEEXT1"
+"$SPECTRABINANDRANGE"
+"$BETADOPPLERAVERAGE"
+"$BETATOFAVERAGE "
+"$DECAYPOSITIONZ"
+"$END" 
+" > $FILE
+
+time ./ShogunReconstructor
+done
+
+exit 0
+
+
+
+

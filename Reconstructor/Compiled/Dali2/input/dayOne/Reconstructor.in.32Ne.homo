@@ -1,0 +1,8 @@
+INPUTFILE ../../../SimulationResults/Builder/dali2/32ne/32ne_32ne_241mev_2540mgC_0720kev_30ps_2200_dist.root
+OUTPUTFILE ../../../SimulationResults/Reconstructor/dali2/32ne/32ne_32ne_241mev_2540mgC_0720kev_30ps_2200_dist.root
+SPECTRABINANDRANGE 400 0. 4000.
+FIFIND 0
+DECAYPOSITIONZ 1.09
+BETATOFAVERAGE 0.607
+BETADOPPLERAVERAGE 0.5839
+END 

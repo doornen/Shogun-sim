@@ -1,0 +1,4 @@
+INPUTFILE ../Tutorial/60CoBuilder.root
+OUTPUTFILE ../Tutorial/60CoReconstructor.root
+SPECTRABINANDRANGE 400 0. 4000.
+END

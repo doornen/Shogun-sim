@@ -1,0 +1,1075 @@
+#include <vector>
+#include <string>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <cmath>
+
+#include "TH1.h"
+#include "TH2F.h"
+#include "TLine.h"
+#include "TCanvas.h"
+#include "TFile.h"
+#include "TTree.h"
+#include "TPad.h"
+#include "TVirtualPad.h"
+#include "TText.h"
+#include "TMath.h"
+#include "TF1.h"
+
+float GetDopplerCorrectedEnergy(float gamma_det_x,float gamma_det_y,float gamma_det_z,
+                                float target_x,float target_y,float target_z,
+                                float pos_det_x, float pos_det_y, float pos_det_z, 
+                                float gamma_energy, float beta_rec,float beta_mean_tof,float beta_average,float decay_z)
+{
+  double vx1 = gamma_det_x - target_x;                         //cout<<"vx1: "<<vx1<<endl;
+  double vy1 = gamma_det_y - target_y;                         //cout<<"vy1: "<<vy1<<endl;
+  double vz1 = gamma_det_z - target_z - decay_z;               //cout<<"vz1: "<<vz1<<endl;
+
+  double l1 = sqrt(vx1*vx1 + vy1*vy1 + vz1*vz1);
+
+  double vx2 = pos_det_x - target_x;                           //cout<<"vx2: "<<vx2<<endl;
+  double vy2 = pos_det_y - target_y;                           //cout<<"vy2: "<<vy2<<endl;
+  double vz2 = pos_det_z - target_z - decay_z;                 //cout<<"vy2: "<<vz2<<endl;
+ 
+  double l2 = sqrt(vx2*vx2 + vy2*vy2 + vz2*vz2);
+          
+  // The theta angle:
+  double theta_lab = acos((vx1*vx2 + vy1*vy2 + vz1*vz2)/l1/l2);//cout<<"Theta lab: "<<theta_lab<<endl;
+  // the beta value:
+  double beta = beta_average + (beta_rec-beta_mean_tof);         //cout<<"beta: "<<beta<<endl;
+  float doppler_corrected_energy = gamma_energy*(1-beta*cos(theta_lab))/sqrt(1.0-beta*beta);
+  return doppler_corrected_energy;
+}
+
+void RikenReconstructor()
+{ 
+  //float eventNumberCheck = 0.;
+  const int numberOfDali2Crystals = 182;
+  const int numberOfDali3Crystals = 118;
+  float eventNumberPrevious = 0.;
+  float dopplerCorrectedGammaEnergy[20];
+  char root_in[200];
+  char root_out[200];
+  char temp[200];
+  int dali2_opt          = 0;  //1 if you want to include it in the analysis, 0 else
+  int dali3_opt          = 0;
+  int grape_opt          = 0;
+  int sgt_opt            = 0;
+  int sphere_opt         = 0;
+  int numBin             = 1000;
+  float firstBin         = 0;
+  float lastBin          = 4000.0;
+  float reduction_factor = 1.;
+  float beta_average    = 0.4295;        //The average value at the moment of decay for the correction
+  float beta_mean_tof   = 0.4295;//The mean beta from Tof
+  float decay_z         = 0.0;  //The lifetime of the excited state moves the average decay point along the beam axis
+
+  double beta_halflive[20]={0.4223,0.4177,0.4166,0.4156,0.4154,0.4152,0.4151,0.415,0.4149,0.4149,0.4149,0.4148,0.4148,0.4148,0.4147,0.4147,0.4147};
+  double decay_z_halflive[20]={0.0,0.111,0.2017,0.3,0.3959,0.4906,0.581,0.6707,0.7516,0.8455,0.9306,1.015,1.099,1.175,1.255,1.335,1.412};
+ 
+  //------------------------------------------------------------------------------------------------------
+  //Reading the input file, which can change the values
+  FILE *fin = fopen("./input/RikenReconstructor.in","r");
+  while(!feof(fin))
+  {
+    fscanf(fin,"%s ",temp); 
+    if(strcmp(temp,"INPUTFILE")==0)
+    {
+      fscanf(fin,"%s",&root_in);
+      printf("%s %s \n",temp,root_in);
+    }
+    else if(strcmp(temp,"OUTPUTFILE")==0)  
+    {
+      fscanf(fin,"%s ",&root_out); 
+      printf("%s %s \n",temp,root_out);
+    }
+    else if(strcmp(temp,"DALI2INCLUDE")==0)  
+    {
+      fscanf(fin,"%i ",&dali2_opt); 
+      printf("%s %i \n",temp,dali2_opt);
+    }
+    // else if(strcmp(temp,"NUMBEROFDALI2DETECTORS")==0)  
+    // {
+    //   fscanf(fin,"%i ",&NumberOfDali2Crystals); 
+    //   printf("%s %i \n",temp,NumberOfDali2Crystals);
+    // }
+    else if(strcmp(temp,"DALI3INCLUDE")==0)  
+    {
+      fscanf(fin,"%i ",&dali3_opt); 
+      printf("%s %i \n",temp,dali3_opt);
+    }
+    else if(strcmp(temp,"GRAPEINCLUDE")==0) 
+    {
+      fscanf(fin,"%i ",&grape_opt); 
+      printf("%s %i \n",temp,grape_opt);
+    }
+    else if(strcmp(temp,"SGTINCLUDE")==0)  
+    {
+      fscanf(fin,"%i ",&sgt_opt); 
+      printf("%s %i \n",temp,sgt_opt);
+    }
+    else if(strcmp(temp,"SPHEREINCLUDE")==0)  
+    {
+      fscanf(fin,"%i ",&sphere_opt); 
+      printf("%s %i \n",temp,sphere_opt);
+    }
+    else if(strcmp(temp,"SPECTRABINANDRANGE")==0)
+    {
+      fscanf(fin,"%i %f %f",&numBin,&firstBin,&lastBin);
+      printf("%s %i %f %f\n",temp, numBin,firstBin,lastBin);
+    }
+    else if(strcmp(temp,"BETADOPPLERAVERAGE")==0)
+    {
+      fscanf(fin,"%f",&beta_average); 
+      printf("%s %f \n",temp,beta_average);
+    }
+    else if(strcmp(temp,"BETATOFAVERAGE")==0)
+    {
+      fscanf(fin,"%f",&beta_mean_tof); 
+      printf("%s %f \n",temp,beta_mean_tof);
+    }
+    else if(strcmp(temp,"DECAYPOSITIONZ")==0)
+    {
+      fscanf(fin,"%f",&decay_z); 
+      printf("%s %f \n",temp,decay_z);
+    }
+    else if(strcmp(temp,"STATISTICSREDUCTIONFACTOR")==0)
+    {
+      fscanf(fin,"%f",&reduction_factor); 
+      printf("%s %f \n",temp,reduction_factor);
+      if(reduction_factor<1) return;
+    }
+    else if(strcmp(temp,"END")==0) break;
+    else 
+    {
+      cout<<"Could not read your input keyword. Aborting program."<<endl; 
+      abort();
+    }
+  }
+
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+// These variables are the same as for the eventbuilder 
+float theta_low, theta_high; //Angle covered
+int mass,z,charge, mass_f, z_f, charge_f;
+float thickness; 
+float evnum;
+float decayIDevnum;
+float x_p0,y_p0,z_p0,x_pvb,y_pvb,z_pvb,x_pva,y_pva,z_pva;
+float energy_p;
+float beta_b,beta_r,beta_a,halflife,decay_time_after_interaction;
+float x_g0,y_g0,z_g0,x_gv,y_gv,z_gv;
+float e_rest,e_doppler;
+float theta_gamma_rest, theta_gamma_lab;
+float energy_vertex_stored;
+int kind_target;
+//***********************************************
+float total_event_num;//energy_notcor;
+int gamma_det_type;  // 1 for dali, 2 for grape, 3 for sgt 
+float pos_det_x,pos_det_y,pos_det_z;     //reconstructed HI position from detector after target
+float ver_rec_x, ver_rec_y, ver_rec_z;
+float beta_rec;
+//-----------------------------------------------
+//For the Dali2 array
+int dali2_flag[numberOfDali2Crystals];
+float dali2_x[numberOfDali2Crystals],dali2_y[numberOfDali2Crystals],dali2_z[numberOfDali2Crystals];
+float dali2_energy_not_cor[numberOfDali2Crystals];
+float dali2_time[numberOfDali2Crystals] = {0.};
+//-----------------------------------------------
+//For the Dali3 array
+int dali3_flag[numberOfDali3Crystals];
+float dali3_x[numberOfDali3Crystals],dali3_y[numberOfDali3Crystals],dali3_z[numberOfDali3Crystals];
+float dali3_energy_not_cor[numberOfDali3Crystals];
+float dali3_time[numberOfDali3Crystals] = {0.};
+//-----------------------------------------------
+//For the Grape array
+//pos,energy [xx][xx][0] is for the core
+int grape_flag[18], grape_crystal_flag[18][2][10];
+float grape_x[18][2][10],grape_y[18][2][10],grape_z[18][2][10];
+float grape_energy_not_cor[18][2][10];
+float grape_time[18][2][10];
+//----------------------------------------------
+//For the strip ge telescope
+//----------------------------------------------
+int sgt_flag[10], sgt_coax_crystal_flag[10], sgt_planar_strip_flag[10][26]; //fictive central contactplus the 25 strips
+float sgt_x[10][27],sgt_y[10][27],sgt_z[10][27]; //first the coax, then the fictive central planar contact, then the strips
+float sgt_energy_not_cor[10][27]; //first the coax, then the planar, then the strips
+float sgt_time[10][27];
+//----------------------------------------------
+//For the sphere:
+float sphere_fi_x,sphere_fi_y,sphere_fi_z;
+float sphere_energy_not_cor;
+//Input of the resolutions:
+int dali2_en_res_opt = 0;
+int dali3_en_res_opt = 0;
+int grape_en_res_opt = 0;
+int sgt_en_res_opt   = 0;
+float dali2_en_res[2];
+float dali3_en_res[2];
+float grape_en_res[2];
+float sgt_en_res[2];
+float dali2_time_res[2];
+float dali3_time_res[2];
+float grape_time_res[2];
+float sgt_time_res[2];
+float pos_det_at_target_res;
+float pos_det_after_target_res; // Pos Resolution in mm FWHM!
+float beta_res; //Resolution of beta in FWHM!
+
+//float dummy=0.0;  //Used very often for quick calculations;
+//End, same variables
+//----------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------------
+  char tempname[100];
+
+  TFile *rootfile = new TFile(root_out,"RECREATE");
+  rootfile->cd();
+
+  //Testing the position
+  TH2F *h_gamma_vector_xy = new TH2F("h_gamma_vector_xy","",200,-1.1,1.1,200,-1.1,1.1);
+
+  //Creating Beta and gamma lab spectra!!!!!!!!!!!!!!!!!!!!!
+  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  TH2F *h_beta_before_beta_after = new TH2F("h_beta_before_beta_after","h_beta_before_beta_after",200,0.50,0.65,200,0.50,0.65);
+  TH2F *h_beta_real_beta_before = new TH2F("h_beta_real_beta_before","h_beta_real_beta_before",200,0.50,0.65,200,0.50,0.65);
+  TH2F *h_beta_real_beta_after = new TH2F("h_beta_real_beta_after","h_beta_real_beta_after",200,0.50,0.65,200,0.50,0.65);
+  
+  TH1F *h_dali2_crystal_mult;
+  TH1F *h_dali2_doppler_cor;
+  TH1F *h_dali2_doppler_cor_mult[10];
+  TH1F *h_dali2_doppler_cor_crystal[numberOfDali2Crystals];
+  TH1F *h_dali2_doppler_cor_ring[17];
+  TH2F *h_dali2_doppler_cor_energy_max_ring;
+  TH1F *h_dali2_energy;
+  TH1F *h_dali2_energy_crystal[numberOfDali2Crystals];
+  TH2F *h_dali2_energy_beta_real;
+
+  TH2F *h_beta_after_dali2_doppler;
+  TH2F *h_dali2_fired_doppler;
+
+  if(dali2_opt==1)
+  {
+    //Creating dali spectra!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // Crystal multiplicity,ok
+    h_dali2_crystal_mult = new TH1F("h_dali2_crystal_Mult","h_dali2_crystal_mult",numberOfDali2Crystals,0,numberOfDali2Crystals);  
+    // All, OK
+    h_dali2_doppler_cor = new TH1F("h_dali2_doppler_cor","h_dali2_doppler_cor",numBin,firstBin,lastBin);
+  
+    // According to the multiplicity
+    for(int i=0;i<10;i++)
+    {
+      sprintf(tempname,"h_dali2_doppler_cor_mult[%i]",i);
+      h_dali2_doppler_cor_mult[i] = new TH1F(tempname,tempname,numBin,firstBin,lastBin);
+    } 
+
+    // The spectra crystalwise, OK
+    for(int i=0;i<numberOfDali2Crystals;i++)
+    {
+      sprintf(tempname,"h_dali2_doppler_cor_crystal[%i]",i);
+      h_dali2_doppler_cor_crystal[i] = new TH1F(tempname,tempname,numBin,firstBin,lastBin);
+    }  
+    //Ringwise:
+    for(int i=0;i<17;i++)
+    {
+      sprintf(tempname,"h_dali2_doppler_cor_ring[%i]",i);
+      h_dali2_doppler_cor_ring[i] = new TH1F(tempname,tempname,numBin,firstBin,lastBin);
+    }
+    //The ring with the most energy:
+    //for(int i=0;i<15;i++)
+    //{
+      sprintf(tempname,"h_dali2_doppler_cor_energy_max_ring");
+      h_dali2_doppler_cor_energy_max_ring = new TH2F(tempname,tempname,numBin,firstBin,lastBin,15,0,15);
+    //}
+
+    //Not doppler corrected, OK
+    h_dali2_energy = new TH1F("h_dali2_energy","h_dali2_energy",numBin,firstBin,lastBin);
+    // The spectra crystalwise,OK
+    for(int i=0;i<numberOfDali2Crystals;i++)
+    {
+      sprintf(tempname,"h_dali2_energy_crystal[%i]",i);
+      h_dali2_energy_crystal[i] = new TH1F(tempname,tempname,numBin,firstBin,lastBin);
+    }
+    //comparing beta REAL with dali energy:
+    h_dali2_energy_beta_real = new TH2F("h_dali2_energy_beta_real","h_dali2_energy_beta_real",numBin,firstBin,lastBin,200,0.40,0.45);
+
+    //comparing beta after the target with doppler corrected energy
+    h_beta_after_dali2_doppler = new TH2F("h_beta_after_dali2_doppler","",200,0.5,0.64,numBin,firstBin,lastBin);
+
+    //comparing beta after the target with doppler corrected energy
+    h_dali2_fired_doppler = new TH2F("h_dali2_fired_doppler","",182,0,182,numBin,firstBin,lastBin);
+
+  }
+  TH1F *h_dali3_crystal_mult;
+  TH1F *h_dali3_doppler_cor_single;
+  TH1F *h_dali3_doppler_cor;
+  TH1F *h_dali3_energy_sum;
+  if(dali3_opt==1)
+  {
+    //Creating dali3 spectra!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // Crystal multiplicity,ok
+    h_dali3_crystal_mult = new TH1F("h_dali3_crystal_Mult","h_dali3_crystal_mult",100,0,100);
+    //Single hits, OK
+    h_dali3_doppler_cor_single = new TH1F("h_dali3_doppler_cor_single","h_dali3_doppler_cor_single",numBin,firstBin,lastBin);
+    // All, OK, This includes addback events.
+    h_dali3_doppler_cor = new TH1F("h_dali3_doppler_cor","h_dali3_doppler_cor",numBin,firstBin,lastBin);
+    h_dali3_energy_sum = new TH1F("h_dali3_energy_sum","h_dali3_energy_sum",numBin,firstBin,lastBin);
+  }
+  //---------------------------------------------------------------
+  ///////////////////////////////
+  //Grape!!!!!!!!!!!!!!!!!!!!!
+  //////////////////////////////
+  TH1F *h_grape_segment_mult;
+  TH1F *h_grape_crystal_mult;
+  TH1F *h_grape_detector_mult;
+  TH1F *h_grape_doppler_cor;
+  TH1F *h_grape_doppler_cor_single_segment;
+  TH1F *h_grape_doppler_cor_single_crystal;
+  TH1F *h_grape_doppler_cor_single_detector;
+  TH1F *h_grape_doppler_cor_two_segments;
+  TH1F *h_grape_doppler_cor_two_crystals;
+  TH1F *h_grape_doppler_cor_det[18];
+  TH1F *h_grape_energy;
+  TH1F *h_grape_energy_det[18];
+  if(grape_opt==1)
+  {
+    h_grape_segment_mult = new TH1F("h_grape_segment_mult",
+                                        "h_grape_segment_mult",15,0,15);
+    h_grape_crystal_mult = new TH1F("h_grape_crystal_mult",
+                                        "h_grape_crystal_mult",15,0,15);
+    h_grape_detector_mult = new TH1F("h_grape_detector_mult",
+                                        "h_grape_detector_mult",15,0,15);
+
+    // Hit in only one segment, OK
+    h_grape_doppler_cor = new TH1F("h_grape_doppler_cor",
+                                   "h_grape_doppler_cor",numBin,firstBin,lastBin); 
+
+    // Hit in only one segment, OK
+    h_grape_doppler_cor_single_segment = new TH1F("h_grape_doppler_cor_single_segment",
+                                        "h_grape_doppler_cor_single_segment",numBin,firstBin,lastBin); 
+    // Hit in only one crystal, OK
+    h_grape_doppler_cor_single_crystal = new TH1F("h_grape_doppler_cor_single_crystal",
+                                        "h_grape_doppler_cor_single_crystal",numBin,firstBin,lastBin);
+    // Hit in only one detector
+    h_grape_doppler_cor_single_detector = new TH1F("h_grape_doppler_cor_single_detector",
+                                        "h_grape_doppler_cor_single_detector",numBin,firstBin,lastBin); 
+    // Hit in two segments in the same detector
+    h_grape_doppler_cor_two_segments = new TH1F("h_grape_doppler_cor_two_segments",
+                                        "h_grape_doppler_cor_two_segments",numBin,firstBin,lastBin);
+    //Energy added up from two crystals in the same detector
+    h_grape_doppler_cor_two_crystals = new TH1F("h_grape_doppler_cor_two_crystals",
+                                        "h_grape_doppler_cor_two_crystals",numBin,firstBin,lastBin);
+  
+    //All the detectors individually
+    //
+    for(int i=0;i<18;i++)
+    {
+      sprintf(tempname,"h_grape_doppler_cor_det[%i]",i);
+      h_grape_doppler_cor_det[i] = new TH1F(tempname,tempname,numBin,firstBin,lastBin);
+    }
+    //Not Doppler corrected, OK
+    h_grape_energy = new TH1F("h_grape_energy","h_grape_energy",numBin,firstBin,lastBin);
+ 
+    for(int i=0;i<18;i++)
+    {
+      sprintf(tempname,"h_grape_energy_det[%i]",i);
+      h_grape_energy_det[i] = new TH1F(tempname,tempname,numBin,firstBin,lastBin);
+    }
+  }
+  //---------------------------------------------------------------	      
+  ///////////////////////////////
+  //SGT!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ///////////////////////////////
+  // multiplicity of the coaxial crystals within the array
+  TH1F *h_sgt_coax_mult;
+  TH1F *h_sgt_strip_mult[10];
+  TH1F *h_sgt_strip_fan[10];
+  TH1F *h_sgt_doppler_cor_det[10];
+  TH1F *h_sgt_doppler_cor;
+  TH1F *h_sgt_coax_energy_det[10];
+
+  TH1F *h_sgt_doppler_cor_beta_var[20];
+
+  if(sgt_opt==1)
+  {
+    cout<<"Creating the SGT spectra"<<endl;
+    h_sgt_coax_mult = new TH1F("h_sgt_coax_mult","h_sgt_coax_mult",10,0,10);
+    
+    // multiplicity and fan spectra of strips of the detectors
+    for(int i=0;i<10;i++)
+    {
+      sprintf(tempname,"h_sgt_strip_mult[%i]",i);
+      h_sgt_strip_mult[i] = new TH1F(tempname,tempname,25,0,25);
+
+      sprintf(tempname,"h_sgt_strip_fan[%i]",i);
+      h_sgt_strip_fan[i] = new TH1F(tempname,tempname,26,0,26);
+    }
+
+    // Doppler corrected, detectorwise
+    for(int i=0;i<10;i++)
+    {
+      sprintf(tempname,"h_sgt_doppler_cor_det[%i]",i);
+      h_sgt_doppler_cor_det[i] = new TH1F(tempname,tempname,numBin,firstBin,lastBin);
+    }
+    //cout<<"Doppler corrected, total array"<<endl;
+    sprintf(tempname,"h_sgt_doppler_cor");
+    h_sgt_doppler_cor = new TH1F(tempname,tempname,numBin,firstBin,lastBin);
+    
+    //Not Doppler-corrected
+    for(int i=0;i<10;i++)
+    {
+      sprintf(tempname,"h_sgt_coax_energy_det[%i]",i);
+      h_sgt_coax_energy_det[i] = new TH1F(tempname,tempname,numBin,firstBin,lastBin);
+    }
+
+    //Doppler corrected, but varying beta;
+    for(int i=0;i<20;i++)
+    {
+      sprintf(tempname,"h_sgt_doppler_cor_beta_var[%i]",i);
+      h_sgt_doppler_cor_beta_var[i] = new TH1F(tempname,tempname,numBin,firstBin,lastBin);
+    }
+  }
+  //-----------------------------------------------------------------------------
+  // The Sphere:
+  TH1F *h_sphere_doppler_cor;
+  if(sphere_opt==1)
+  {
+    sprintf(tempname,"h_sphere_doppler_cor");
+    h_sphere_doppler_cor = new TH1F(tempname,tempname,numBin,firstBin,lastBin);
+  } 
+  //////////////////////////////////////////////////////////////////////////////////////////////////////
+  TFile *infile = new TFile(root_in,"READ");
+  TTree *t = (TTree*)infile->Get("ObservedEvents");
+
+  t->SetBranchAddress("EventNumber",&evnum);
+  t->SetBranchAddress("DecayIDOfEventNumber",&decayIDevnum);
+  t->SetBranchAddress("X_vertex",&x_p0);    //X Position at the fragmentation point
+  t->SetBranchAddress("Y_vertex",&y_p0);    //Y Position at the fragmentation point
+  t->SetBranchAddress("Z_vertex",&z_p0);    //Z Position at the fragmentation point
+  t->SetBranchAddress("XV_projectile_before_target",&x_pvb);  // Normalized Vector of beam before the target
+  t->SetBranchAddress("YV_projectile_before_target",&y_pvb);
+  t->SetBranchAddress("ZV_projectile_before_target",&z_pvb);
+  t->SetBranchAddress("XV_projectile_after_target",&x_pva);   // Normalized Vector of beam after the target
+  t->SetBranchAddress("YV_projectile_after_target",&y_pva);
+  t->SetBranchAddress("ZV_projectile_after_target",&z_pva);
+  t->SetBranchAddress("Energy_projectile",&energy_p); // energy of beam before the target in MeV/u
+  t->SetBranchAddress("Beta_before_target",&beta_b);    // Beta before the target
+  t->SetBranchAddress("Beta_real",&beta_r);             // Beta during deexcitation	
+  t->SetBranchAddress("Beta_after_target",&beta_a);     // Beta After Target
+  t->SetBranchAddress("Halflife",&halflife);          // Halflife
+  t->SetBranchAddress("Decay_Time_after_interaction",&decay_time_after_interaction);
+  t->SetBranchAddress("X_vertex_gamma",&x_g0);            //X Position at the gamma emmittance point
+  t->SetBranchAddress("Y_vertex_gamma",&y_g0);            //Y Position at the gamma emmittance point
+  t->SetBranchAddress("Z_vertex_gamma",&z_g0);            //Z Position at the gamma emmittance point
+  t->SetBranchAddress("XV_gamma",&x_gv);		         // Gamma vector
+  t->SetBranchAddress("YV_gamma",&y_gv);
+  t->SetBranchAddress("ZV_gamma",&z_gv);
+  t->SetBranchAddress("E_gamma_rest",&e_rest);		 //Energy at rest
+  t->SetBranchAddress("E_gamma_Doppler",&e_doppler);//Theta of doppler boosted gamma
+  t->SetBranchAddress("Theta_gamma_rest",&theta_gamma_rest);
+  t->SetBranchAddress("Theta_gamma_lab",&theta_gamma_lab);
+  
+  //Energy of fragment at fragmentation
+  t->SetBranchAddress("Energy_Vertex",&energy_vertex_stored); 
+  //So far identical to the ROOT-Tree of step one
+  //The new stuff:
+  //Setting the type of the gamma detector
+  t->SetBranchAddress("Gamma_det_type",&gamma_det_type);
+  //-------------------------------
+  //DALI:
+  if(dali2_opt==1)
+  {
+    t->SetBranchAddress("DALI2_flag",dali2_flag);//ID of which det recorded a gamma in the event
+    t->SetBranchAddress("DALI2_energy_not_cor",dali2_energy_not_cor);
+    t->SetBranchAddress("DALI2_time",dali2_time);
+  }
+  //-------------------------------
+  //DALI3:
+  if(dali3_opt==1)
+  {
+    t->SetBranchAddress("DALI3_flag",dali3_flag);//ID of which det recorded a gamma in the event
+    t->SetBranchAddress("DALI3_energy_not_cor",dali3_energy_not_cor);
+    t->SetBranchAddress("DALI3_time",dali3_time);
+  }
+  //-----------------------------------------------------------
+  //GRAPE:
+  if(grape_opt==1)
+  {
+    t->SetBranchAddress("GRAPE_flag",grape_flag);
+    t->SetBranchAddress("GRAPE_crystal_flag",grape_crystal_flag);
+    t->SetBranchAddress("GRAPE_energy_not_cor",grape_energy_not_cor);
+    t->SetBranchAddress("GRAPE_time",grape_time);
+  }
+  //-----------------------------------------------------------
+  //SGT
+  if(sgt_opt==1)
+  {
+    t->SetBranchAddress("SGT_flag",sgt_flag);
+    t->SetBranchAddress("SGT_coax_crystal_flag",sgt_coax_crystal_flag);
+    t->SetBranchAddress("SGT_planar_strip_flag",sgt_planar_strip_flag); //central plus 25 strips
+    t->SetBranchAddress("SGT_energy_not_cor",sgt_energy_not_cor);
+    t->SetBranchAddress("SGT_time",sgt_time);
+  }
+  if(sphere_opt==1)
+  {
+   //fi: First interaction
+    t->SetBranchAddress("sphere_fi_X",&sphere_fi_x); // reconstructed position from a det after the secondary target
+    t->SetBranchAddress("sphere_fi_Y",&sphere_fi_y); //Including the resolution of the detectors
+    t->SetBranchAddress("sphere_fi_Z",&sphere_fi_z);
+    t->SetBranchAddress("sphere_energy_not_cor",&sphere_energy_not_cor);
+  }
+  //-------------------------------
+  //Position detector after targetpos_det_after_target_res
+  t->SetBranchAddress("pos_det_rec_X",&pos_det_x); // reconstructed position from a det after the secondary target
+  t->SetBranchAddress("pos_det_rec_Y",&pos_det_y); //Including the resolution of the detectors
+  t->SetBranchAddress("pos_det_rec_Z",&pos_det_z);
+  t->SetBranchAddress("Vertex_Reconstructed_X",&ver_rec_x); // reconstructed vertex postion, 
+  t->SetBranchAddress("Vertex_Reconstructed_Y",&ver_rec_y); //including resolution
+  t->SetBranchAddress("Vertex_Reconstructed_Z",&ver_rec_z);    
+
+  //reconstructed beta 
+  t->SetBranchAddress("Beta_Reconstructed",&beta_rec); // reconstructed beta, including resolution
+
+  //------------------------------------------------------------------------------------------------------
+  //Going to the Header file, which has the information of constant values.
+  infile->cd();
+  TTree *tHeader = (TTree*)infile->Get("Header");
+  tHeader->SetBranchAddress("Mass",&mass);                      // Beam mass
+  tHeader->SetBranchAddress("Z",&z);                               // Beam z	
+  tHeader->SetBranchAddress("Charge",&charge);                // Beam charge	
+  tHeader->SetBranchAddress("Mass_Fragment",&mass_f);         // Fragment mass
+  tHeader->SetBranchAddress("Z_Fragment",&z_f);	                 // Fragment z
+  tHeader->SetBranchAddress("Charge_Fragment",&charge_f);   // Fragment charge
+  tHeader->SetBranchAddress("TargetKind",&kind_target);
+  tHeader->SetBranchAddress("TargetThicknessCM",&thickness);
+  tHeader->SetBranchAddress("Total_Event_Number",&total_event_num);
+  tHeader->SetBranchAddress("ThetaLow",&theta_low);
+  tHeader->SetBranchAddress("ThetaHigh",&theta_high);
+  //DALI2:
+  if(dali2_opt==1)
+  {
+    tHeader->SetBranchAddress("DALI2_en_res_opt",&dali2_en_res_opt);
+    tHeader->SetBranchAddress("DALI2_en_res",dali2_en_res);
+    tHeader->SetBranchAddress("DALI2_time_res",dali2_time_res);
+    tHeader->SetBranchAddress("DALI2_x",dali2_x);
+    tHeader->SetBranchAddress("DALI2_y",dali2_y);
+    tHeader->SetBranchAddress("DALI2_z",dali2_z);
+  }
+  //DALI3
+  if(dali3_opt==1)
+  {
+    tHeader->SetBranchAddress("DALI3_en_res_opt",&dali3_en_res_opt);
+    tHeader->SetBranchAddress("DALI3_en_res",dali3_en_res);
+    tHeader->SetBranchAddress("DALI3_time_res",dali3_time_res);
+    tHeader->SetBranchAddress("DALI3_x",dali3_x);
+    tHeader->SetBranchAddress("DALI3_y",dali3_y);
+    tHeader->SetBranchAddress("DALI3_z",dali3_z);
+  }
+  //GRAPE:
+  if(grape_opt==1)
+  {
+    tHeader->SetBranchAddress("GRAPE_res_opt",&grape_en_res_opt);
+    tHeader->SetBranchAddress("GRAPE_en_res",grape_en_res);
+    tHeader->SetBranchAddress("GRAPE_time_res",grape_time_res);
+    tHeader->SetBranchAddress("GRAPE_x",grape_x);
+    tHeader->SetBranchAddress("GRAPE_y",grape_y);
+    tHeader->SetBranchAddress("GRAPE_z",grape_z);
+  }
+  //SGT
+  if(sgt_opt==1)
+  {
+    tHeader->SetBranchAddress("SGT_en_res_opt",&sgt_en_res_opt);
+    tHeader->SetBranchAddress("SGT_en_res",sgt_en_res);
+    tHeader->SetBranchAddress("SGT_time_res",sgt_time_res);
+    tHeader->SetBranchAddress("SGT_x",sgt_x);//first the coax, then the fictive planar central, then the strips
+    tHeader->SetBranchAddress("SGT_y",sgt_y);
+    tHeader->SetBranchAddress("SGT_z",sgt_z);
+  }
+  //beta, and position resolution 
+  tHeader->SetBranchAddress("Beta_Resolution",&beta_res); 
+  tHeader->SetBranchAddress("Pos_Det_at_Target_res",&pos_det_at_target_res); 
+  tHeader->SetBranchAddress("Pos_Det_After_Target_Res",&pos_det_after_target_res);
+  tHeader->GetEntry(0);
+  //-----------------------------------------------------------------------------------------------------------
+  //Finished reading the Root file
+
+  Int_t nentries = (Int_t)t->GetEntries()/reduction_factor;
+  cout <<"Entries: "<< nentries << endl;
+
+  int dali2_crystal_mult = 0;
+  //Dividing old dali2 into 16 rings of equal z-position:
+  //int dali2_ring_low[16]={0,6,12,20,32,45,56,70,80,90,104,116,128,140,148,154};
+  //int dali2_ring_high[16]={5,11,19,31,44,55,69,79,89,103,115,127,139,147,153,159};
+  //Dividing new dali2 into 17 rings of equal theta angle:
+  int dali2_ring_low[17] ={0, 6,13,20,30,40,52,66,80,94,108,122,136,148,156,164,170};
+  int dali2_ring_high[17]=   {5,12,19,29,39,51,65,79,93,107,121,135,147,155,163,169,181};
+
+  int dali2_ring_energy_max = -1;
+  float dali2DopplerCorrectedEnergy[182] = {0.0};
+ 
+  int dali3_crystal_mult = 0;
+
+  int grape_segment_mult = 0;
+  int grape_crystal_mult = 0;
+  int grape_detector_mult = 0;
+
+  int sgt_strip_mult = 0;
+  int sgt_strip_mult_det[10] = {0.};
+  
+  int sgt_coax_mult = 0;
+  int sgt_detector_mult = 0;
+
+  float dali2_energy_sum = 0.0;
+  float dali3_energy_sum = 0.0;
+  float grape_energy_sum = 0.0;
+  float grape_energy_sum_det[18]= {0.};
+  float sgt_energy_sum=0.0;
+  float sgt_energy_sum_det[10]= {0.};
+
+  float dali2_energy_max = -999.9;
+  float dali3_energy_max = -999.9;
+  float grape_energy_max = -999.9;
+  float grape_energy_max_det[18];
+ 
+  float sgt_energy_max = -999.9;
+  float sgt_energy_max_det[10] = {0.};
+ 
+  float dali2_x_thatsit = 0.0;
+  float dali2_y_thatsit = 0.0;
+  float dali2_z_thatsit = 0.0;
+
+  float dali3_x_thatsit = 0.0;
+  float dali3_y_thatsit = 0.0;
+  float dali3_z_thatsit = 0.0;
+
+  float grape_x_thatsit = 0.0;
+  float grape_y_thatsit = 0.0;
+  float grape_z_thatsit = 0.0;
+  float grape_x_thatsit_det[18];
+  float grape_y_thatsit_det[18];
+  float grape_z_thatsit_det[18];
+
+  float sgt_x_thatsit = 0.0;
+  float sgt_y_thatsit = 0.0;
+  float sgt_z_thatsit = 0.0;
+  float sgt_x_thatsit_det[10] = {0.};
+  float sgt_y_thatsit_det[10] = {0.};
+  float sgt_z_thatsit_det[10] = {0.};
+
+  cout<<"Starting the analysis"<<endl;
+  for(int iii=0;iii<nentries;iii++)
+  {
+    if((iii+1)%1000 == 0) cout << iii+1 << "/" << nentries << " events DONE!" << endl;
+    t->GetEntry(iii);
+
+    //Fill the gamma xy spectrum
+    h_gamma_vector_xy->Fill(x_gv,y_gv);
+
+    // Fill the beta spectra:
+    h_beta_before_beta_after->Fill(beta_b,beta_a);
+    h_beta_real_beta_before->Fill(beta_r,beta_b);
+    h_beta_real_beta_after->Fill(beta_r,beta_a);
+
+    //-------------------------------------------------------------
+    // Starting with the gamma ray detector spectra:
+    if(dali2_opt==1)
+    { 
+      for(int nnn=0;nnn<numberOfDali2Crystals;nnn++)
+      {
+        if(dali2_flag[nnn]==1) 
+        {
+          dali2_crystal_mult++;
+          dali2_energy_sum = dali2_energy_sum+dali2_energy_not_cor[nnn];
+          //Filling the energy spectra without Doppler-correction        
+          h_dali2_energy->Fill(dali2_energy_not_cor[nnn]);
+          h_dali2_energy_crystal[nnn]->Fill(dali2_energy_not_cor[nnn]);
+          h_dali2_energy_beta_real->Fill(dali2_energy_not_cor[nnn],beta_r);
+          //Performing the Doppler correction,
+          //This one is detectorwise!
+          float corrected_energy_crystal = GetDopplerCorrectedEnergy(dali2_x[nnn],dali2_y[nnn],dali2_z[nnn],
+                                 ver_rec_x,ver_rec_y,ver_rec_z, 
+                                 pos_det_x,pos_det_y,pos_det_z, 
+                                 dali2_energy_not_cor[nnn],beta_rec,beta_mean_tof,beta_average,decay_z);
+          h_dali2_doppler_cor_crystal[nnn]->Fill(corrected_energy_crystal);
+          h_dali2_fired_doppler->Fill(nnn,corrected_energy_crystal);
+          
+          dali2DopplerCorrectedEnergy[dali2_crystal_mult-1] = corrected_energy_crystal;
+          //Filling Dali ringwise:
+          for(int ppp=0;ppp<17;ppp++)
+          {
+            if(nnn>=dali2_ring_low[ppp] && nnn<=dali2_ring_high[ppp]) h_dali2_doppler_cor_ring[ppp]->Fill(corrected_energy_crystal);
+          }
+          //See how addback procedures work
+          if(dali2_energy_not_cor[nnn]>dali2_energy_max)
+          {
+            dali2_energy_max=dali2_energy_not_cor[nnn];
+            dali2_x_thatsit=dali2_x[nnn];
+            dali2_y_thatsit=dali2_y[nnn];
+            dali2_z_thatsit=dali2_z[nnn];
+            for(int ppp=0;ppp<15;ppp++) {if(nnn>=dali2_ring_low[ppp] && nnn<=dali2_ring_high[ppp]) dali2_ring_energy_max = ppp;}
+          }
+        }
+      }
+      h_dali2_crystal_mult->Fill(dali2_crystal_mult);
+      if(dali2_crystal_mult>0)
+      {
+        //Performing the Doppler-correction from the angles
+        //of the detector that registered the highest gamma-ray energy.
+        float corrected_energy = GetDopplerCorrectedEnergy(dali2_x_thatsit,dali2_y_thatsit,dali2_z_thatsit,
+                                 ver_rec_x,ver_rec_y,ver_rec_z, 
+                                 pos_det_x,pos_det_y,pos_det_z, 
+                                 dali2_energy_sum,beta_rec,beta_mean_tof,beta_average,decay_z);
+        h_dali2_doppler_cor->Fill(corrected_energy);
+        h_dali2_doppler_cor_energy_max_ring->Fill(corrected_energy,dali2_ring_energy_max);
+  
+        for(int i = 1;i<=3;i++)
+	{
+          if(dali2_crystal_mult==i) 
+	  {
+            for(int j = 0;j<i;j++)
+            {
+              h_dali2_doppler_cor_mult[i-1]->Fill(dali2DopplerCorrectedEnergy[j]);
+            }
+          }
+        }
+      }
+    }
+    //End Dali2
+    //---------------------------------------------------------------------------------------------------------
+    //Begin Dali3
+    if(dali3_opt==1)
+    { 
+      for(int nnn=0;nnn<numberOfDali3Crystals;nnn++)
+      {
+        if(dali3_flag[nnn]==1) 
+        {
+          dali3_crystal_mult++;
+          dali3_energy_sum = dali3_energy_sum+dali3_energy_not_cor[nnn];
+          if(dali3_energy_not_cor[nnn]>dali3_energy_max)
+          {
+            dali3_energy_max=dali3_energy_not_cor[nnn];
+            dali3_x_thatsit=dali3_x[nnn];
+            dali3_y_thatsit=dali3_y[nnn];
+            dali3_z_thatsit=dali3_z[nnn];
+          }
+        }
+      }
+      h_dali3_crystal_mult->Fill(dali3_crystal_mult);
+      if(dali3_crystal_mult>0)
+      {
+        //Performing the Doppler-correction from the angles
+        //of the detector that registered the highest gamma-ray energy.
+        float corrected_energy = GetDopplerCorrectedEnergy(dali3_x_thatsit,dali3_y_thatsit,dali3_z_thatsit,
+                                 ver_rec_x,ver_rec_y,ver_rec_z, 
+                                 pos_det_x,pos_det_y,pos_det_z, 
+                                 dali3_energy_sum,beta_rec,beta_mean_tof,beta_average,decay_z);
+        h_dali3_doppler_cor->Fill(corrected_energy);      
+        h_dali3_energy_sum->Fill(dali3_energy_sum);
+        if(dali3_crystal_mult==1) h_dali3_doppler_cor_single->Fill(corrected_energy);
+      }
+    }
+    //End Dali3
+    //-------------------------------------------------------------
+    // Begin Grape
+    if(grape_opt==1)
+    {
+      for(int nnn=0;nnn<18;nnn++)
+      {
+        if(grape_flag[nnn]==1.0) grape_detector_mult++;
+        for(int ppp=0;ppp<2;ppp++)
+        {
+          if(grape_crystal_flag[nnn][ppp][0]==1)
+          {
+            grape_crystal_mult++;
+            grape_energy_sum = grape_energy_sum+ grape_energy_not_cor[nnn][ppp][0];
+            grape_energy_sum_det[nnn] = grape_energy_sum_det[nnn] + grape_energy_not_cor[nnn][ppp][0];
+          }
+          for(int qqq=0;qqq<9;qqq++)
+          {
+            if(grape_crystal_flag[nnn][ppp][qqq+1]==1.0) grape_segment_mult++;
+            // The highest energy release in the segment of the total array
+            if(grape_energy_not_cor[nnn][ppp][qqq+1]>grape_energy_max)
+            {
+              grape_energy_max=grape_energy_not_cor[nnn][ppp][qqq+1];
+              grape_x_thatsit=grape_x[nnn][ppp][qqq+1];
+              grape_y_thatsit=grape_y[nnn][ppp][qqq+1];
+              grape_z_thatsit=grape_z[nnn][ppp][qqq+1];
+            }
+            // The highest energy release in the segment of the detector [nnn]
+            if(grape_energy_not_cor[nnn][ppp][qqq+1]>grape_energy_max_det[nnn])
+            {
+              grape_energy_max_det[nnn]=grape_energy_not_cor[nnn][ppp][qqq+1];
+              grape_x_thatsit_det[nnn]=grape_x[nnn][ppp][qqq+1];
+              grape_y_thatsit_det[nnn]=grape_y[nnn][ppp][qqq+1];
+              grape_z_thatsit_det[nnn]=grape_z[nnn][ppp][qqq+1];
+            }
+          }
+        }
+        // The uncorrected energy per detector
+        if(grape_flag[nnn]==1)
+        {
+          h_grape_energy_det[nnn]->Fill(grape_energy_sum_det[nnn]);
+          // Doppler correction per detector
+          float corrected_energy_det = GetDopplerCorrectedEnergy(grape_x_thatsit_det[nnn],grape_y_thatsit_det[nnn],grape_z_thatsit_det[nnn],
+                                       ver_rec_x,ver_rec_y,ver_rec_z, 
+                                       pos_det_x,pos_det_y,pos_det_z, 
+                                       grape_energy_sum_det[nnn],beta_rec,beta_mean_tof,beta_average,decay_z);
+          
+          h_grape_doppler_cor_det[nnn]->Fill(corrected_energy_det);
+        }
+      }
+      h_grape_segment_mult->Fill(grape_segment_mult);
+      h_grape_crystal_mult->Fill(grape_crystal_mult);
+      h_grape_detector_mult->Fill(grape_detector_mult);
+      h_grape_energy->Fill(grape_energy_sum);
+      float corrected_energy = GetDopplerCorrectedEnergy(grape_x_thatsit,grape_y_thatsit,grape_z_thatsit,
+                               ver_rec_x,ver_rec_y,ver_rec_z, 
+                               pos_det_x,pos_det_y,pos_det_z, 
+                               grape_energy_sum,beta_rec,beta_mean_tof,beta_average,decay_z);
+      
+      h_grape_doppler_cor->Fill(corrected_energy);
+      // Checking resolution, efficiency with condition on gamma-ray multiplicity
+      if(grape_segment_mult==1) h_grape_doppler_cor_single_segment->Fill(corrected_energy);
+      if(grape_segment_mult==2) h_grape_doppler_cor_two_segments->Fill(corrected_energy);
+      if(grape_crystal_mult==1) h_grape_doppler_cor_single_crystal->Fill(corrected_energy);
+      if(grape_crystal_mult==2) h_grape_doppler_cor_two_crystals->Fill(corrected_energy);
+      if(grape_detector_mult==1) h_grape_doppler_cor_single_detector->Fill(corrected_energy);
+    } 
+    //End Grape
+    //-------------------------------------------------------------
+    // Begin SGT
+    // Reminder of the spectra to be filled:
+    //h_sgt_coax_mult; OK
+    //h_sgt_strip_mult[1]; OK
+    //h_sgt_strip_fan[1]; OK
+    //h_sgt_doppler_cor_det[1]; OK
+    //h_sgt_doppler_cor; OK
+    // Remingder of the variables of the ROOT-tree:
+    // sgt_flag[1], sgt_coax_crystal_flag[1], sgt_planar_strip_flag[1][26]; //fictive central contact plus the 25 strips
+    // sgt_x[1][27],sgt_y[1][27],sgt_z[1][27]; //first the coax, then the fictive central planar contact, then the strips
+    // sgt_energy_not_cor[1][27]; //first the coax, then the planar (sum of the strips), then the strips
+    if(sgt_opt==1)
+    {
+      for(int nnn=0;nnn<10;nnn++)
+      {
+        if(sgt_flag[nnn]==1) sgt_detector_mult++;
+        if(sgt_coax_crystal_flag[nnn]==1)
+        {
+          sgt_coax_mult++;
+          sgt_energy_sum = sgt_energy_sum + sgt_energy_not_cor[nnn][0];
+          sgt_energy_sum_det[nnn] = sgt_energy_sum_det[nnn] + sgt_energy_not_cor[nnn][0];
+          h_sgt_coax_energy_det[nnn]->Fill(sgt_energy_not_cor[nnn][0]);
+        }
+        for(int ppp=1;ppp<26;ppp++)
+        {
+          if(sgt_planar_strip_flag[nnn][ppp]==1) 
+          {
+            sgt_strip_mult++;
+            sgt_strip_mult_det[nnn]++;
+            //cout<<"StripFlag true. sgt_x["<<nnn<<"]["<<ppp+1<<"]: "<<sgt_x[nnn][ppp+1]<<endl;
+            h_sgt_strip_fan[nnn]->Fill(ppp);
+            // If there is only one gammaray simulated and only one detector, the next line is fine:
+            sgt_energy_sum = sgt_energy_sum + sgt_energy_not_cor[nnn][ppp+1];
+            sgt_energy_sum_det[nnn] = sgt_energy_sum_det[nnn] + sgt_energy_not_cor[nnn][ppp+1];
+            if(sgt_energy_not_cor[nnn][ppp+1]>= sgt_energy_max)
+            {
+              sgt_energy_max=sgt_energy_not_cor[nnn][ppp+1];
+              sgt_x_thatsit=sgt_x[nnn][ppp+1];
+              sgt_y_thatsit=sgt_y[nnn][ppp+1];
+              sgt_z_thatsit=sgt_z[nnn][ppp+1];
+            }
+            // For individuall detectors:
+            if(sgt_energy_not_cor[nnn][ppp+1]> sgt_energy_max_det[nnn])
+            {
+              sgt_energy_max_det[nnn]=sgt_energy_not_cor[nnn][ppp+1];
+              sgt_x_thatsit_det[nnn]=sgt_x[nnn][ppp+1];
+              sgt_y_thatsit_det[nnn]=sgt_y[nnn][ppp+1];
+              sgt_z_thatsit_det[nnn]=sgt_z[nnn][ppp+1];
+            } 
+          }
+        }
+        if(sgt_strip_mult_det[nnn]>=1)
+        {
+          float corrected_energy = GetDopplerCorrectedEnergy(sgt_x_thatsit_det[nnn],sgt_y_thatsit_det[nnn],sgt_z_thatsit_det[nnn],
+                                     ver_rec_x,ver_rec_y,ver_rec_z, 
+                                     pos_det_x,pos_det_y,pos_det_z, 
+                                     sgt_energy_sum_det[nnn],beta_rec,beta_mean_tof,beta_average,decay_z);
+          h_sgt_doppler_cor_det[nnn]->Fill(corrected_energy);
+          h_sgt_doppler_cor->Fill(corrected_energy);
+          
+          //Filling with different betas:
+          for(int i=0;i<20;i++)
+          {
+            float corrected_energy_beta_var = GetDopplerCorrectedEnergy(sgt_x_thatsit_det[nnn],sgt_y_thatsit_det[nnn],sgt_z_thatsit_det[nnn],
+                                     ver_rec_x,ver_rec_y,ver_rec_z, 
+                                     pos_det_x,pos_det_y,pos_det_z, 
+                                     sgt_energy_sum_det[nnn],beta_rec,beta_mean_tof,beta_halflive[i],decay_z_halflive[i]);
+            h_sgt_doppler_cor_beta_var[i]->Fill(corrected_energy_beta_var);
+          }
+        }
+        h_sgt_strip_mult[nnn]->Fill(sgt_strip_mult);
+        sgt_strip_mult=0;
+      }
+      h_sgt_coax_mult->Fill(sgt_coax_mult);
+    }
+    if(sphere_opt==1)
+    {
+      //float corrected_energy = GetDopplerCorrectedEnergy(sphere_fi_x,sphere_fi_y,sphere_fi_z,
+      float corrected_energy = GetDopplerCorrectedEnergy(x_gv*1000,y_gv*1000,z_gv*1000,
+                                     ver_rec_x,ver_rec_y,ver_rec_z, 
+                                     pos_det_x,pos_det_y,pos_det_z, 
+                                     sphere_energy_not_cor,beta_rec,beta_mean_tof,beta_average,decay_z);
+       h_sphere_doppler_cor->Fill(corrected_energy);
+    }
+    //-------------------------------------------------------------
+    // SGT finished
+    // The variables have to be reset.
+    dali2_crystal_mult = 0;
+    dali2_ring_energy_max = -1;
+    
+
+    for(int i =0;i<182;i++) dali2DopplerCorrectedEnergy[i] = 0.;
+    dali3_crystal_mult = 0;
+
+    grape_segment_mult  = 0;
+    grape_crystal_mult  = 0;
+    grape_detector_mult = 0;
+
+    sgt_strip_mult = 0;
+    for(int i =0;i<10;i++)
+    {
+      sgt_strip_mult_det[i]=0;
+    }
+
+    sgt_coax_mult = 0;
+    sgt_detector_mult = 0;
+
+    dali2_energy_sum = 0.0;
+    dali3_energy_sum = 0.0;
+    grape_energy_sum = 0.0;
+    sgt_energy_sum   = 0.0;
+
+    dali2_energy_max = -999.9;
+    dali3_energy_max = -999.9;
+    grape_energy_max = -999.9;
+    for(int i =0;i<18;i++)
+    {
+     grape_energy_max_det[i] = -999;
+     grape_energy_sum_det[i] = 0.0;
+    }
+    sgt_energy_max = -999.9;
+    for(int i =0;i<10;i++)
+    {
+     sgt_energy_max_det[i] = -999;
+     sgt_energy_sum_det[i] = 0.0;
+    }
+    eventNumberPrevious = evnum;
+  }
+  //---------------------------------------------------------------
+  //Writing into the root file:
+  //BETA
+  rootfile->cd();
+  h_gamma_vector_xy->Write();
+  h_beta_before_beta_after->Write();
+  h_beta_real_beta_before->Write();
+  h_beta_real_beta_after->Write();
+  //---------------------------------------------------------------
+  //Dali-----------------------------------------------------------
+  //---------------------------------------------------------------
+  if(dali2_opt==1)
+  {
+    h_dali2_crystal_mult->Write();
+    for(int i=0;i<10;i++)
+    {
+      h_dali2_doppler_cor_mult[i]->Write();
+    }
+    h_dali2_doppler_cor->Write();
+    for(int i=0;i<numberOfDali2Crystals;i++)
+    {
+      h_dali2_doppler_cor_crystal[i]->Write();
+    }   
+    h_dali2_doppler_cor_energy_max_ring->Write();
+    h_dali2_energy->Write();
+    for(int i=0;i<numberOfDali2Crystals;i++)
+    {
+      h_dali2_energy_crystal[i]->Write();
+    }
+    h_dali2_energy_beta_real->Write();
+    h_beta_after_dali2_doppler->Write();
+    h_dali2_fired_doppler->Write();
+  }    
+  //---------------------------------------------------------------
+  //Dali3-----------------------------------------------------------
+  //---------------------------------------------------------------
+  if(dali3_opt==1)
+  {
+    h_dali3_crystal_mult->Write();
+    h_dali3_doppler_cor_single->Write();
+    h_dali3_doppler_cor->Write();
+    h_dali3_energy_sum->Write();
+  }   
+  //---------------------------------------------------------------
+  ///////////////////////////////
+  //Grape!!!!!!!!!!!!!!!!!!!!!
+  //////////////////////////////
+  if(grape_opt==1)
+  {
+    h_grape_segment_mult->Write();
+    h_grape_crystal_mult->Write();
+    h_grape_detector_mult->Write();
+    h_grape_doppler_cor->Write();
+    h_grape_doppler_cor_single_segment->Write();
+    h_grape_doppler_cor_single_crystal->Write();
+    h_grape_doppler_cor_single_detector->Write();
+    h_grape_doppler_cor_two_segments->Write();
+    h_grape_doppler_cor_two_crystals->Write();
+    for(int i=0;i<18;i++)
+    {
+      h_grape_doppler_cor_det[i]->Write();
+    }
+    h_grape_energy->Write();
+    for(int i=0;i<18;i++)
+    {
+      h_grape_energy_det[i]->Write();
+    }
+  }
+  //---------------------------------------------------------------	      
+  ///////////////////////////////
+  //SGT!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ///////////////////////////////
+  if(sgt_opt==1)
+  {
+    h_sgt_coax_mult->Write();
+    for(int i=0;i<10;i++)
+    {
+      h_sgt_strip_mult[i]->Write();
+    }
+    for(int i=0;i<10;i++)
+    {
+      h_sgt_strip_fan[i]->Write();
+    }
+    for(int i=0;i<10;i++)
+    {
+      h_sgt_doppler_cor_det[i]->Write();
+    }
+    h_sgt_doppler_cor->Write();
+    for(int i=0;i<10;i++)
+    {
+      h_sgt_coax_energy_det[i]->Write();
+    }
+    for(int i=0;i<20;i++)
+    {
+      h_sgt_doppler_cor_beta_var[i]->Write();
+    }
+  }
+  //---------------------------------------------------------------	      
+  ///////////////////////////////
+  //Sphere///////////////////////
+  ///////////////////////////////
+  if(sphere_opt==1)
+  {
+    h_sphere_doppler_cor->Write();
+  }
+}

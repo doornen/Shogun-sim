@@ -1,0 +1,9 @@
+INPUTFILE ../SimulationResults/Builder/Dali2/Upgrade/200mev1000kev_conf3_ta_moved.root
+OUTPUTFILE ../SimulationResults/Reconstructor/Dali2/Upgrade/200mev1000kev_conf3_ta_moved.root
+SPECTRABINANDRANGE 240 0. 6000.
+DECAYPOSITIONZ 0.0
+BETATOFAVERAGE 0.508
+BETADOPPLERAVERAGE 0.508
+ADDBACK 1 15
+FIFIND 2
+END 

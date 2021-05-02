@@ -1,0 +1,1 @@
+../EventBuilderRIKEN/include/MyNamespace.hh

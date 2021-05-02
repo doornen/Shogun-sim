@@ -1,0 +1,5 @@
+INPUTFILE ../SimulationResults/Generator/NishinaSchool/13N.root
+OUTPUTFILE ../SimulationResults/Builder/NishinaSchool/13N_14cm.root
+DALI2INCLUDE 1
+DALI2ENERGYRESOLUTION 2 2.2 0.5
+END

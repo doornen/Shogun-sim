@@ -1,0 +1,8 @@
+INPUTFILE ../../../SimulationResults/Builder/Dali2/31na/32na31na790kev0ps.root
+OUTPUTFILE ../../../SimulationResults/Reconstructor/Dali2/31na/32na31na790kev0ps.root
+SPECTRABINANDRANGE 160 0. 4000.
+FIFIND 2
+DECAYPOSITIONZ 0
+BETATOFAVERAGE 0.6266
+BETADOPPLERAVERAGE 0.612
+END 

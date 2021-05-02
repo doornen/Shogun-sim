@@ -1,0 +1,8 @@
+INPUTFILE ../../../SimulationResults/Builder/Dali2/32na/32na32na580kev5ps.root
+OUTPUTFILE ../../../SimulationResults/Reconstructor/Dali2/32na/32na32na580kev5ps.root
+SPECTRABINANDRANGE 160 0. 4000.
+FIFIND 2
+DECAYPOSITIONZ 0.1650
+BETATOFAVERAGE 0.6241
+BETADOPPLERAVERAGE 0.6065
+END 

@@ -1,0 +1,1 @@
+Automators/AutomatorShogunEfficiency.sh

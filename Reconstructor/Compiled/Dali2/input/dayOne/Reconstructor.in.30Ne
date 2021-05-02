@@ -1,0 +1,8 @@
+INPUTFILE ../../../SimulationResults/Builder/dali2/30ne/30ne_30ne_20ps.root
+OUTPUTFILE ../../../SimulationResults/Reconstructor/dali2/30ne/30ne_30ne_20ps.root
+SPECTRABINANDRANGE 160 0. 4000.
+FIFIND 0
+DECAYPOSITIONZ 0.65
+BETATOFAVERAGE 0.6201
+BETADOPPLERAVERAGE 0.5993
+END 

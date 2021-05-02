@@ -1,0 +1,8 @@
+INPUTFILE ../SimulationResults/Generator/Efficiency/100mev60co.root
+OUTPUTFILE ../SimulationResults/Builder/Dali2/efficiency/100mev60co.root
+DALI2INCLUDE 1
+DALI2FIINCLUDE 1
+BEAMPIPEINCLUDE 0
+TARGETHOLDERINCLUDE 0
+DALI2ENERGYRESOLUTION 2 2.2795 0.5
+END

@@ -1,0 +1,7 @@
+INPUTFILE ../../../SimulationResults/Builder/Shogun/32mg/Case15_32mg32mgpp150mev.root
+OUTPUTFILE ../../../SimulationResults/Reconstructor/Shogun/32mg/Case15_32mg32mgpp150mev.root
+SPECTRABINANDRANGE 300 0. 6000.
+BETADOPPLERAVERAGE 0.4998
+BETATOFAVERAGE 0.5081
+DECAYPOSITIONZ 0.0
+END 

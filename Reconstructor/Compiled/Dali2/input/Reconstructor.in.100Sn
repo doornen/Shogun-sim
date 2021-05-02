@@ -1,0 +1,8 @@
+INPUTFILE ../../../SimulationResults/Builder/Dali2/100sn/102sn100sn200mev.root
+OUTPUTFILE ../../../SimulationResults/Reconstructor/Dali2/100sn/102sn100sn200mev.root
+SPECTRABINANDRANGE 100 0. 4000.
+FIFIND 0
+DECAYPOSITIONZ 0.0
+BETATOFAVERAGE 0.5677
+BETADOPPLERAVERAGE 0.5065
+END 

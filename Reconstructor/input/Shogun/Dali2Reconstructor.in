@@ -1,0 +1,10 @@
+INPUTFILE ../SimulationResults/Builder/Shogun/49ca_be_dali186_comparison.root
+OUTPUTFILE ../SimulationResults/Reconstructor/Shogun/49ca_be_dali186_comparison.root
+SPECTRABINANDRANGE 512 0. 8192.
+BETADOPPLERAVERAGE 0.424
+BETATOFAVERAGE 0.447
+DECAYPOSITIONZ 0.0
+ADDBACK 1 10
+FIFIND 1
+STATISTICSREDUCTIONFACTOR 1
+END  

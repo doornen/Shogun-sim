@@ -1,0 +1,1 @@
+../../../EventGenerator/include/MyNamespace.hh

@@ -1,0 +1,8 @@
+INPUTFILE ../SimulationResults/Builder/Shogun/Efficiency/Case29_100MeV1000keV.root
+OUTPUTFILE ../SimulationResults/Reconstructor/Shogun/Efficiency/Case29_100MeV1000keV.root
+SPECTRABINANDRANGE 1000 0. 5000.
+BETADOPPLERAVERAGE 0.4295
+BETATOFAVERAGE 0.4295
+DECAYPOSITIONZ 0.0
+END 
+

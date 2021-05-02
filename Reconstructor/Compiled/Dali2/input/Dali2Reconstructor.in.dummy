@@ -1,0 +1,12 @@
+INPUTFILE ../../../SimulationResults/Builder/Dali2/Efficiency/250MeV3000keV_beampipe_1mm_pb_6p_res.root
+OUTPUTFILE ../../../SimulationResults/Reconstructor/Dali2/Efficiency/250MeV3000keV_beampipe_1mm_pb_6p_res.root
+SPECTRABINANDRANGE 1000 0. 5000.
+BETADOPPLERAVERAGE 0.6152
+BETATOFAVERAGE 0.6152
+DECAYPOSITIONZ 0.0
+ADDBACK 1 15
+TRIGGER 1
+FIFIND 2
+ENERGYTHRESHOLD 50
+END 
+

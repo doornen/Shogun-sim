@@ -1,0 +1,9 @@
+INPUTFILE ../SimulationResults/Builder/Dali2/30ne/30NeCoulex230MeVAtomicBg1mmPb1mmSnShield.root
+OUTPUTFILE ../SimulationResults/Reconstructor/Dali2/30ne/30NeCoulex230MeVAtomicBg1mmPb1mmSnShield.root
+SPECTRABINANDRANGE 160 0. 4000.
+DECAYPOSITIONZ 0.0
+BETATOFAVERAGE 0.5992
+BETADOPPLERAVERAGE 0.5919
+ADDBACK 1 15
+END 
+ 

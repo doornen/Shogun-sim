@@ -1,0 +1,50 @@
+
+# DO NOT DELETE
+
+EfficiencySphereAngleCut_C.so: /usr/include/root/TH1F.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TH1.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TAxis.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TNamed.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TObject.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/Rtypes.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/RConfig.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/RVersion.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/DllImport.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/Rtypeinfo.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TGenericClassInfo.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TSchemaHelper.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TStorage.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TVersionCheck.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/Riosfwd.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TBuffer.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TString.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TRefCnt.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TMathBase.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TAttAxis.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TArrayD.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TArray.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TAttLine.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TAttFill.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TAttMarker.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TArrayC.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TArrayS.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TArrayI.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TArrayF.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/Foption.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TVectorFfwd.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TVectorDfwd.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TFitResultPtr.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TFile.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TDirectoryFile.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TDirectory.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TList.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TSeqCollection.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TCollection.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TIterator.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TDatime.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TUUID.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TUrl.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/TMap.h
+EfficiencySphereAngleCut_C.so: /usr/include/root/THashTable.h
+./EfficiencySphereAngleCut_C.so: /usr//include/root/cintdictversion.h /usr//include/root/RVersion.h
+EfficiencySphereAngleCut_C__ROOTBUILDVERSION= 5.27/04

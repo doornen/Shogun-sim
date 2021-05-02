@@ -1,0 +1,8 @@
+INPUTFILE ../SimulationResults/Builder/GammaCommissioning/events_built_GRC_100mev_1000kev_0ps.root
+OUTPUTFILE ../SimulationResults/Reconstructor/GammaCommissioning/out_events_built_GRC_100mev_1000kev_0ps.root
+SPECTRABINANDRANGE 200 0. 2000.
+BETADOPPLERAVERAGE 0.4295
+BETATOFAVERAGE 0.4295
+DECAYPOSITIONZ 0.0
+STATISTICSREDUCTIONFACTOR 1.
+END

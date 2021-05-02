@@ -1,0 +1,10 @@
+INPUTFILE ../../../SimulationResults/Builder/Shogun/Efficiency_100mev1000kev_gagg_conf3.root
+OUTPUTFILE ../../../SimulationResults/Reconstructor/Shogun/Efficiency_100mev1000kev_gagg_conf3.root
+SPECTRABINANDRANGE 2000 0. 20000.
+BETADOPPLERAVERAGE 0.5677
+BETATOFAVERAGE 0.5677
+DECAYPOSITIONZ 0.0
+FIFIND 1
+ADDBACK 1 15
+END 
+

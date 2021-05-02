@@ -1,0 +1,4 @@
+INPUTFILE ../SimulationResults/Builder/dali2/efficiency/137Cs.root
+OUTPUTFILE ../SimulationResults/Reconstructor/dali2/efficiency/out_137Cs.root
+SPECTRABINANDRANGE 400 0. 4000.
+END

@@ -1,0 +1,8 @@
+INPUTFILE ../SimulationResults/Builder/RisingStopped/48ca/events_built_rising_stopped_48ca_beta_decay.root
+OUTPUTFILE ../SimulationResults/Reconstructor/RisingStopped/48ca/out_events_built_rising_stopped_48ca_beta_decay.root
+SPECTRABINANDRANGE 2000 0. 10000.
+BETADOPPLERAVERAGE 0.
+BETATOFAVERAGE 0.
+DECAYPOSITIONZ 0.0
+STATISTICSREDUCTIONFACTOR 1.
+END

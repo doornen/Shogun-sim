@@ -1,0 +1,5 @@
+INPUTFILE ../SimulationResults/Builder/NP0811-RIBF70/88y.root
+OUTPUTFILE ../SimulationResults/Reconstructor/NP0811-RIBF70/88y_sim.root
+SPECTRABINANDRANGE 400 0. 4000.
+ADDBACK 1 15
+END
