@@ -1,0 +1,24 @@
+\begin{thebibliography}{1}
+
+\bibitem{GEANT4}
+S.~Agostinelli \textit{et al.}
+\newblock Geant4 \- a simulation toolkit.
+\newblock {\em Nucl. Instr. Meth. {\bf A} 506, 250}, 2003.
+
+\bibitem{takeuchi:2014:nima}
+S.~Takeuchi, T.~Motobayashi, Y.~Togano, M.~Matsushita, N.~Aoi, K.~Demichi,
+  H.~Hasegawa, and H.~Murakami.
+\newblock {\em Nucl. Instr. Meth. A}, 763:596, 2014.
+
+\bibitem{ROOT}
+{\ttfamily http://root.cern.ch/}.
+
+\bibitem{BORREL}
+V.~Borrel \textit{et al.}
+\newblock {\em Z. Phys. {\bf A} 314, 191}, 1983.
+
+\bibitem{GOLDHABER}
+A.S. Goldhaber.
+\newblock {\em Phys. Lett. {\bf B} 53, 306}, 1974.
+
+\end{thebibliography}

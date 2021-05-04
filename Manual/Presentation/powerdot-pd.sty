@@ -1,0 +1,113 @@
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+\ProvidesPackage{powerdot-pd}[2009/01/07 (PD)]
+\RequirePackage{times}
+\RequirePackage{pifont}
+%
+\pddefinepalettes{default}{
+  \definecolor{pdcolor1}{rgb}{.0,.0,.0} % black
+  \definecolor{pdcolor2}{rgb}{1,1,1}    % white
+  \definecolor{pdcolor3}{rgb}{1,1,0}    % yellow
+}
+%
+\pddefinetemplate{titleslide}{
+  titlefont=\LARGE\sl\color{pdcolor2}\centering,
+  texthook=t,
+  textpos={.5\slidewidth,.85\slideheight},
+  textwidth=.9\slidewidth,
+  textfont=\large\color{pdcolor2}\centering,
+  textheight=.8\slideheight
+}{%
+  \psframe*[linecolor=pdcolor1](0,\slideheight)(\slidewidth,0)%
+}
+%
+\pddefinetemplate{slide}{
+  titlepos={.15\slidewidth,.93\slideheight},
+  titlewidth=.8\slidewidth,
+  titlefont=\Large\bfseries\color{pdcolor2}\centering,
+  % 
+  textpos={.18\slidewidth,.85\slideheight},
+  textwidth=.8\slidewidth,
+  textheight=.8\slideheight,
+  % 
+  rffont=\tiny\color{pdcolor3},
+  lffont=\tiny\color{pdcolor3},
+  clockcolor=pdcolor3,clockpos={.5\slidewidth,.04\slideheight},clockhook=t,clockalign=1,
+  clockcharsize=10pt,
+  rfpos={.985\slidewidth,.015\slideheight},
+  lfpos={.015\slidewidth,.015\slideheight},
+  %
+  tocpos={.01\slidewidth,.85\slideheight},
+  tocwidth=.15\slidewidth,
+%  tocfont=\color{pdcolor2}
+  tocsecindent=0pt,
+  tocslideindent=1ex,
+  toctcolor=pdcolor2,
+  tochltcolor=pdcolor3,
+  tochlcolor=pdcolor2
+}{%
+  \psframe*[linecolor=pdcolor1](0,\slideheight)(\slidewidth,0)%  black BG
+  \psframe*[linecolor=pdcolor2](.165\slidewidth,.045\slideheight)(\slidewidth,.89\slideheight)%  white
+%  \psline[linecolor=pdcolor2,linewidth=.2pt](0,.89\slideheight)(.15\slidewidth,.89\slideheight)% white line
+}
+% === WIDESLIDE ===
+\pddefinetemplate[slide]{wideslide}{
+  titlepos={.05\slidewidth,.93\slideheight},
+  titlewidth=.9\slidewidth,
+  tocpos,
+  textpos={.05\slidewidth,.85\slideheight},
+  textwidth=.9\slidewidth,
+}{
+  \psframe*[linecolor=pdcolor2](0,.045\slideheight)(\slidewidth,.89\slideheight)%  white
+}
+% === SECTIONSLIDE ===
+\pddefinetemplate[wideslide]{sectionslide}{
+  titlehook=c,
+  titlefont=\LARGE\color{pdcolor2}\centering,
+  titlepos={.5\slidewidth,.55\slideheight},
+  titlewidth=.8\slidewidth
+}{
+  \psframe*[linecolor=pdcolor1](0,\slideheight)(\slidewidth,0)%
+  %\rput[tl](3,5){\parbox{5cm}{\color{white}\tableofcontents[content=currentsection]}}
+}
+%
+% === EMPTYSLIDE ===
+\pddefinetemplate{emptyslide}{
+  textpos={0,\slideheight},
+  textfont=\color{pdcolor2}
+}{
+  \psframe*[linecolor=pdcolor1](0,\slideheight)(\slidewidth,0)%  black BG
+  \rput(5,5){\color{pdcolor1}abc}   % some invisible text to prevent adobe from rotating the slide
+}
+%
+% === DISPLAY TEST ===
+\pddefinetemplate[emptyslide]{displaytestslide}{
+  textpos={.5\slidewidth,.5\slideheight}
+}{
+  \psframe[linecolor=yellow](0,\slideheight)(\slidewidth,0)%  yellow frame
+  \psframe[linecolor=red]   (0.01\slidewidth,.99\slideheight)(.99\slidewidth,0.01\slideheight)%  frame
+  \psframe[linecolor=blue]  (0.02\slidewidth,.98\slideheight)(.98\slidewidth,0.02\slideheight)%  frame
+  \rput(5,5){\color{pdcolor1}abc}   % some invisible text to prevent adobe from rotating the slide
+}
+%
+\setkeys[pd]{section}{sectemp=sectionslide,widesectemp=sectionslide}
+%
+\def\labelitemi{\pscircle*[linecolor=pdcolor1](.5ex,.6ex){.4ex}\rule{1ex}{0pt}}
+\def\labelitemii{\pscircle*[linecolor=red](.5ex,.6ex){.3ex}\rule{1ex}{0pt}}
+\def\labelitemiii{\pscircle*[linecolor=green](.5ex,.6ex){.25ex}\rule{1ex}{0pt}}
+\def\labelitemiv{\pscircle*[linecolor=blue](.5ex,.6ex){.2ex}\rule{1ex}{0pt}}
+%
+\def\pd@tochighlight#1{%
+  \hskip\@tempdima
+  \begin{minipage}[b]\@tempdimb
+    \pd@usedtocfont\color\pd@@tochltcolor#1%
+  \end{minipage}%
+}
+\def\pd@tocslide#1{$\cdot$#1}
+%
+\pdsetup{
+  list={labelsep=.5ex,leftmargin=*,itemsep=0pt,topsep=0pt,parsep=0pt},
+  dmaxheight=.85\slideheight
+}
+%
+\def\familydefault{\sfdefault}
+\endinput

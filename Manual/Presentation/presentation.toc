@@ -1,0 +1,16 @@
+\pdcontentsline{1}{4}{Introduction}
+\pdcontentsline{0}{5}{Introductive Remarks}
+\pdcontentsline{0}{7}{Installing the Simulation Package}
+\pdcontentsline{0}{8}{The Three Simulations Steps}
+\pdcontentsline{1}{10}{The Event Generator}
+\pdcontentsline{0}{11}{The Input File}
+\pdcontentsline{0}{12}{The Gamma Input File}
+\pdcontentsline{0}{13}{Using dEdX Tables}
+\pdcontentsline{1}{14}{The Event Builder}
+\pdcontentsline{0}{15}{The Input File}
+\pdcontentsline{0}{16}{The DALI2 Geometry Input File}
+\pdcontentsline{1}{17}{The Reconstructor}
+\pdcontentsline{0}{18}{The Input File}
+\pdcontentsline{1}{19}{Simulation Examples}
+\pdcontentsline{0}{20}{DALI2 Efficiency with $^{60}$Co Source}
+\pdcontentsline{0}{22}{The First Excited State in $^{36}$Ca from the 1n-Knockout Reaction}

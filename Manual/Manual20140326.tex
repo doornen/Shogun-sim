@@ -1,0 +1,1165 @@
+\documentclass[12pt]{book}
+\usepackage{amssymb, amscd}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+%\usepackage[ngerman]{babel}
+\usepackage{amsmath}
+
+\usepackage{url} % for url links
+\usepackage[
+pdfborder={0 0 0}, pdfmenubar=true,  plainpages=false, pdfpagelabels, 
+pdftex=true, breaklinks=false, bookmarks=true, colorlinks=false, pagebackref=false,
+% linkcolor=blue, menucolor=blue, pagecolor=blue, urlcolor=blue, citecolor=blue
+]{hyperref} % to click on chapters, references, urls,...
+\usepackage{authblk} %for affiliations
+%Floats loesen
+\usepackage[section]{placeins}
+
+
+%\noindent
+\setlength{\parindent}{0pt}
+
+
+
+
+
+
+% \newcommand{\versionPackage} {Geant4Shogun.1.0.1.tar.gz}
+\newcommand{\versionPackage} {Geant4Shogun.1.1.tar.gz} %pschrock
+\newcommand{\versionROOT} {5.27/04}
+\newcommand{\versionROOTnew} {5.34/11}
+\newcommand{\versionGEANT} {g4.9.4.p02}
+
+
+
+
+
+\begin{document}
+
+\pagestyle{headings}
+
+\author[1]{Pieter Doornenbal}
+\affil[1]{RIBF, RIKEN, Japan}
+\date{\today} 
+\title{Manual of a GEANT4 Simulation Code for $\gamma$-Ray Detectors used
+  in the RIKEN-RIBF Facility}
+
+\maketitle
+\tableofcontents
+
+\chapter{Introduction}
+\sloppy
+\section{Notes on Version 1.2}
+by Philipp Schrock \\
+(Technical University Darmstadt, Germany)\\
+
+This revised version of the manual for the geant4 simulation tool includes especially the new Lanthanium Bromide (``LaBr3'') $\gamma$-ray detectors from Milano being combined with the Dali-2 array for future experiments at RIBF RIKEN. So, the main changes have been done in the $EventBuilder$, but also some minor changes were done in the $EventGenerator$, e.g. the new liquid Helium target is now included. The changes are described in the corresponding chapters. Also some comments on the data in the created rootfiles are added.\\
+For the analysis of the Dali-2 LaBr3 combination a new $Reconstructor$ was added. It is named ``ReconstructorDLB'' and is described in Chap.~\ref{chap_recDLB}.
+
+
+\section{Previous Introduction}
+This manual describes briefly the GEANT4~\cite{GEANT4} simulation code of the $\gamma$-ray 
+spectrometers Dali2~\cite{DALI} and SHOGUN, which are or will be employed at the Radioactive Ion Beam Factory (RIBF).
+The aim of the simulation code is to obtain reliable values for the $\gamma$-ray detection efficiency
+and energy resolution of a chosen detector geometry under realistic expererimental conditions
+for the secondary beams. Also effects on the $\gamma$-ray lineshape from the target thickness and
+lifetimes of the excited states can be studied. In the following description the necessary steps 
+to perform a simulation and the options are discussed.\hfill{}
+\linebreak{}
+\linebreak{}
+A typical simulation is divided into three steps, namely:
+\begin{itemize}
+\item The \textit{Event Generator}, in which a heavy ion beam strikes on a target and emits
+  $\gamma$-rays. Incoming beam and outgoing beam may be different, i.e. fragmentation reactions
+  are covered in the simulation.
+\item The \textit{Event Builder} simulates the $\gamma$-ray detection response and uses the 
+  first step as input values.
+\item The \textit{Reconstructor} performs the necessary Doppler correction of the detected
+  $\gamma$-rays. Here, the analysis of the observed $\gamma$-rays can be performed by the
+  user.
+\end{itemize}
+The motiviation for partitioning the simulation into these three steps is that they are in principle
+independent from each other. Thus, when changing for instance the detector geometry, the first step
+does not have to be re-simulated and can be used again. 
+Since the first step is very time consuming (especially with thick targets), the whole
+simulation process is thereby accelerated.\hfill{}
+\linebreak{}
+\linebreak{}
+Prior to explaining the three steps in detail, a few notes on the software necessary to run the simulation need
+to be mentioned. The following software is required to be installed on your computer:
+\begin{enumerate}
+\item The ROOT~\cite{ROOT} framework. It can be downloaded from:\hfill{} 
+  \linebreak \url{http://root.cern.ch}
+  \linebreak
+  The simulation code was tested succesfully with ROOT version \versionROOT\ and \versionROOTnew. 
+
+\item The CLHEP class library. Details are given in the previously mentioned installation guide and
+  under:\hfill{} 
+  \linebreak \url{http://proj-clhep.web.cern.ch/proj-clhep}
+
+\item The Geant4 framework. The simulation code was tested only
+  for {\versionGEANT}. It can be downloaded from:\hfill{} 
+  \linebreak \url{http://geant4.cern.ch/}
+  \linebreak
+  An installation guide for Linux and Windows machines is given in:\hfill{} 
+  \linebreak \url{http://geant4.slac.stanford.edu/installation/}
+
+\item Optional, if not already installed: The DAWN GUI and Tcl to create picutes with the $EventBuilder$:\hfill{}
+	\linebreak \url{http://geant4.slac.stanford.edu/Presentations/vis/G4DAWNTutorial/G4DAWNTutorial.html#applicationinstall}\\
+	
+% 	\url{http://geant4.kek.jp/~tanaka/src/dawn_3_90b.tgz}
+% 	\begin{verbatim}
+% 	tar -zxvf dawn_3_90b.tgz
+% 	make clean
+% 	make guiclean
+% 	make
+% 	\end{verbatim}
+
+
+\end{enumerate} 
+
+The simulation package has to be unpacked with the command:\hfill{}
+\linebreak
+\linebreak {\ttfamily tar -zxf \versionPackage.}
+\linebreak
+\linebreak
+This will create the subfolders {\ttfamily EventGenerator}, 
+{\ttfamily EventBuilder}, and {\ttfamily Reconstructor}. 
+These subfolders contain the
+the Event Generator, the Event Builder, and the Reconstructor, respectively, and are now covered in detail.
+%To setup your environment on the machine RIBF00, you may type:\hfill{}
+%\linebreak
+%\linebreak {\ttfamily source setup.sh}
+%\linebreak
+%\linebreak
+%You can put the lines into your {\ttfamily .bashrc} file or, if your installation directories are different,
+%modify the locations accordingly. 
+The manual will close with remarks on things that need improvement and/or need to be implemented. Note that the
+simulation package uses a left-handed system with the positive z-axis being the beam direction.
+
+\chapter{The Event Generator}
+
+Go the the subfolder {\ttfamily EventGenerator}.
+Open the file {\ttfamily GNUMakefile} and make sure that the variables {\ttfamily G4INSTALL}
+and {\ttfamily CLHEP\_BASE\_DIR} are set according to the installation location on your computer.
+Compile the Event Generator with:\hfill{}
+\linebreak
+\linebreak {\ttfamily make all}
+\linebreak
+\linebreak
+It will create the Event Generator. There should be no warning messages anymore.
+
+\section{The Input File(s)}
+
+To change the parameters of the Event Generator, open the file 
+{\ttfamily ./input/EventGenerator.in}. The file contains keywords, which can be used
+in free format and change the default values of the simulation. The available keywords and their
+parameters are listed in Tab.\ref{tab:EVENTGENERATORKEY}. In this table, $s$, $i$, and $f$ are used
+for input string, integer, and floating point values, respectively. Note that in the current version
+the simulation code is very restrictive, that is, comments and not existing input keywords in this file
+will cause the programm to terminate.
+
+\begin{table}[ht]
+  \centering
+  \label{tab:EVENTGENERATORKEY}
+  %\begin{ruledtabular}
+  \begin{tabular}{|l||c|}
+    \hline
+    Keyword & Parameters \\
+    \hline
+    \hline
+    BEAMISOTOPE             & $i$ $i$ $i$     \\
+    BEAMENERGY              & $f$ $f$         \\
+    BEAMPOSITION            & $f$ $f$ $f$ $f$ \\
+    BEAMANGLE               & $f$ $f$ $f$ $f$ \\
+    TARGET                  & $i$ $f$ $f$ $f$ \\
+    TARGETANGULARBROADENING & $i$ $f$         \\
+    MASSCHANGE              & $i$ $i$         \\
+    BORREL                  & $i$ $f$         \\
+    GOLDHABER               & $i$ $f$         \\
+    GAMMAINPUT              & $s$             \\
+    THETARANGE              & $f$ $f$         \\
+    NUMBEROFEVENTS          & $i$             \\
+    DEFAULTCUTVALUE         & $f$             \\
+    OUTPUTFILE              & $s$             \\
+    DEDXTABLE               & $i$ $s$ $s$     \\
+    DISTRIBUTIONTYPE	& $i$		\\
+    DEGRADER		& $i$		\\
+    ATOMICBG                & $s$ $s$ $f$ $f$ \\
+    BETAPLUSDECAY           &                 \\
+    END                     &                 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\FloatBarrier
+
+The parameters are now discussed subsequently (if not specified differently, 
+the units are cm and degrees, respectively):\hfill{}
+\begin{itemize}
+\item BEAMISOTOPE $A_{P}$ $Z_{P}$ $Q_{P}$ \hfill{} \linebreak
+  Contains the information on the type of the projectile $P$ in the order 
+  mass $A_{P}$, the element number $Z_{P}$ and the charge state $Q_{P}$.
+\item BEAMENERGY $E_{P}$ $\Delta E(FWHM)_{P}$\hfill{} \linebreak
+  gives the total energy of the projectile 
+  ( $E_{P}$ before striking on the target) 
+  and the width of the energy distribution ($\Delta E(FWHM)_{P}$) in MeV/$u$.
+\item BEAMPOSITION X FWHM$_{X}$ Y FWHM$_{Y}$\hfill{} \linebreak 
+  Position of the projectile before impinging on the target. 
+\item BEAMANGLE $\vartheta_{P}$ $\Delta (FWHM) \vartheta_{P}$ $\varphi_{P_{min}}$ $\varphi_{P_{max}}$
+  \hfill{} \linebreak
+  Angle of the incoming projectile. The distribution for $\Delta (FWHM) \vartheta_{P}$ is Gaussian, while the 
+  distribution between $\varphi_{P_{min}}$ and $\varphi_{P_{max}}$ is flat.
+\item TARGET Type Size$_{X}$ Size$_{Y}$ Thickness$_{Z}$\hfill{} \linebreak 
+  This line specifies the target material and its dimensions. Available types are:
+  \begin{enumerate}
+  	\item Au
+  	\item Be
+  	\item C
+  	\item Fe
+  	\item Pb
+  	\item LH$_2$
+  	\item Zr
+  	\item CH$_2$
+  	\item LHe
+  	\item Vacuum (``Galactic'')
+  \end{enumerate}
+
+  As density always the ``standard'' value is given. In the EventGenerator.cc the values can be found and changed.
+  The value for Thickness$_{Z}$ is given in mg/cm$^{2}$.
+\item TARGETANGULARBROADENING Option$_{ang.}$ $\Delta (FWHM) \vartheta_{target}$\hfill{} \linebreak 
+  Angular Broadening caused by the reaction in the target. If Option$_{ang.}$=1,
+  this option is considered and the broadening is a Gaussian distribution defined by $\Delta (FWHM) \vartheta_{target}$.
+\item MASSCHANGE $\Delta A$ $\Delta Z$\hfill{} \linebreak
+\item BORREL: Option$_{Borrel}$ $B_{n}$\hfill{} \linebreak
+  Velocity shift for a fragmentation process. If Option$_{Borrel}$=1, the velocity shift is calculated according
+  to the formula from Ref.~\cite{BORREL}:
+  \begin{equation}
+    \frac{v_{f}}{v_{p}} = \sqrt{1-\frac{B_{n}(A_{P}-A_{F})}{A_{P}E_{F}}},
+  \end{equation}
+  where the index $F$ stands for the fragment,  $v$ is the velocity, 
+  and $B_n$ the binding energy (in MeV) per ablated nucleon.
+\item GOLDHABER Option$_{Goldhaber}$ $\sigma_{0}$\hfill{} \linebreak
+  Parallel momentum distribution produced in a fragmentation process. If Option$_{Goldhaber}$=1, the momentum 
+  distribution is calculated according to: 
+  \begin{equation}
+    \sigma_{||}=\sigma_{0}^{2} \frac{A_{F}(A_{P}-A_{F})}{A_{P}-1},
+  \end{equation}
+  where $\sigma_{0}$ is given in MeV/c.
+\item GAMMAINPUT $File_{\gamma-in}$\hfill{} \linebreak
+  The Filename specifies the location of the level and decay scheme to be simulated.
+\item THETARANGE $\vartheta_{\gamma_{min}}$ $\vartheta_{\gamma_{max}}$\hfill{} \linebreak
+  Polar angular range in the moving frame of the $\gamma$-rays that should be included in the simulation. 
+  If your detectors cover only extreme forward angles, $\vartheta_{\gamma_{min}}$ can be set to 0 and 
+  $\vartheta_{\gamma_{max}}$ to 90, thereby reducing the simulation time and filesize by a factor of two.
+\item NUMBEROFEVENTS $N_{events}$\hfill{} \linebreak
+  $N_{events}$ gives the number of reactions to be simulated.
+\item DEFAULTCUTVALUE $L_{cut}$\hfill{} \linebreak
+  $L_{cut}$ specifies the default cut value in mm used in the simulation. Visit the GEANT4 web pages for more information.
+\item OUTPUFILENAME $File_{out}$\hfill{} \linebreak
+  Specifies the location of the output file name.
+\item DEDXTABLE $Option_{dEdX}$ $File_{P}$ $File_{E}$\hfill{} \linebreak
+  Instead of letting GEANT4 calculate the energy loss of projectile and ejectile (the fragment), if Option$_{dEdX}$=1
+  the energy loss can be calculated much faster (for thick targets) according to energy loss tables. 
+  $File_{P}$ and $File_{E}$ specify the location of these tables for projectile and ejectile, respectively. 
+\item DISTRIBUTIONTYPE distribution 0: uniform; 2200: J,M 2,2-> 0,0; 2100: J,M 2,1->0,0 2000: J,M 2,0 -> 0,0
+\item DEGRADER is not implemented so far...
+\item ATOMICBG $Option_{ATOMICBG}$ $FileName$ $Spectrumname$ $\sigma_{bg}$ $N_{\gamma}$\hfill{} \linebreak
+  Option to include atomic background from a 2D ROOT histogram. The total cross section of the
+  atomic background has to be specified in $\sigma_{bg}$ in mbarn and the total number of $\gamma$-rays produced
+  per incident particle, $N_{\gamma}$, has to be specified. A separate program to calculate the
+  anticipated atomic background, abkg, is provided. More details are given in a Sec.~\ref{sec:abkg}.
+\item BETAPLUSDECAY \linebreak
+  If a $\beta^+$ decay of a calibration source like $^{22}$Na is wanted to be simulated two 511~keV $\gamma$-rays need to be added to the level schema (actually, the Generator checks if the energy is $510~\textrm{keV}<E_{\gamma}<512~\textrm{keV}$). With the option BETAPLUSDECAY it will be given to the second $\gamma$-ray the opposite direction of the first one, i.e. the $\vartheta_1$ and $\varphi_1$ angles of the first $\gamma$ will get random values and the second one will get $\vartheta_2=\pi-\vartheta_1$ and $\varphi_2=\pi+\varphi_1$.
+\item END\hfill{} \linebreak
+  This keyword will end the scan of the input file and can be set at any line within the input file.
+\end{itemize}
+
+\subsection{Input of the Level Scheme}
+
+The variable $File_{\gamma-in}$ specifies the location of the decay scheme to be simulated. It contains
+two keywords, {\ttfamily LEVEL} and {\ttfamily DECAY}. They are defined as follows:
+
+\begin{itemize}
+\item LEVEL $N_{Level}$ $P_{i}$ $E_{Level}$ $T_{1/2}$\hfill{} \linebreak
+ $N_{Level}$ is the identifier of the level, $P_{i}$ is the relative initial probability 
+  of the ejectile (fragment) to end
+  in that state after the initial reaction, $E_{Level}$ is the energy of the level 
+  above the ground state in keV, and $T_{1/2}$ is the halflife of the level given in ps.
+\item DECAY $L_{i}$ $L_{f}$ $P_{\gamma}$\hfill{} \linebreak
+  This keyword controls the decay scheme of a initial level $L_{i}$ into the level $L_{f}$ via the relative probability
+  $P_{\gamma}$. Note that any given level may possess up to a maximum five levels thats it decays into.
+\end{itemize}
+
+A possible level scheme with two excited levels at $L_{1}= 1000$ keV and $L_{2}= 1500$ keV and an initial level 
+probability of $P_{1}= 67$ and $P_{2}= 33$ would look as:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily
+  LEVEL  0  0.  0. 0.\linebreak
+  LEVEL  1  67. 1000. 10. \linebreak
+  LEVEL  2  33. 1500. 20.\linebreak
+  DECAY  1  0 100.\linebreak
+  DECAY  2  1 100.\linebreak
+  DECAY  2  0   1.\linebreak
+}
+\linebreak
+\linebreak
+In the above example, $L_{1}$ has a halflife of $T_{1/2} = 10$ ps, while $L_{2}$ has 20 ps. Furthermore, $L_{2}$
+decays into the groundstate (LEVEL 0) with a relative probability of 1/100 compared to the decay to 
+the first excited state (LEVEL 1).  
+
+\subsection{Input of the \textit{dEdX} Tables}
+
+The energy loss tables have the structure: \hfill{} \linebreak
+\linebreak {\ttfamily dEdX Energy SpecificEnergyLoss}. \hfill{} \linebreak \linebreak
+The energy is given in 
+MeV/u and the specific energy loss is given in MeV/(mg/cm$^2$).
+To create an own table the online version of atima \url{http://web-docs.gsi.de/~weick/atima/atima.html} can be used by calculating the energy loss (at the entrance of the target) for different beam energies in reasonable steps (e.g. 5~MeV).
+
+
+\subsection{Including atomic background into the simulation}
+\label{sec:abkg}
+
+The program abkg can be used to inlcude atomic backgroung into the simulation.
+It can be found under abkg/abkg and requires one input file. Examples input files
+are given under abkg/exampleFiles.
+As this program produces an hbk-file, you will have to use h2root to convert it to
+a root-file. 
+
+For the input keyword ATOMICBG the spectrum name to be specified is h1. The total 
+cross-section is given in the title of the spectrum. The total number of $gamma$-rays
+per incident event has to be calculated according to the chosen target thickness.
+
+Without ATOMICBG option, it is assumed that the reaction probability per incident
+particle is always 100 \%. Now, with ATOMICBG option, the initial level probabilities
+of the input level schem are given in mbarn.
+
+\section{Starting the Simulation}
+To start the simulation in the batch mode, type:\hfill{}
+\linebreak \linebreak
+{\ttfamily
+EventGenerator run\_nothing.mac
+}
+\linebreak \linebreak
+Omitting a filename will bring the Event Generator into the ``standard'' GEANT4 interactive session, which is not 
+intended to be used for this step.\\
+
+After the \textit{EventGenerator} has been run sucessfully it might end with an error ``G4VisCommandsViewerUpdate::SetNewValue: no current viewer'' which can be neglected.\\
+
+It might be usefull to save the output of the console to a text file in order to document the exact input values given. In that case type e.g.:\hfill{}
+\linebreak \linebreak
+{\ttfamily
+EventGenerator run\_nothing.mac $>$ console\_output/sim\_001.txt\&
+}
+\linebreak \linebreak
+In that case the progress of the simulation can be seen during runtime by typing:\hfill{}
+\linebreak \linebreak
+{\ttfamily
+less console\_output/sim\_001.txt
+}
+\linebreak \linebreak
+and scroll down with {\ttfamily Shift+g}.
+
+\section{The Output Rootfile}
+
+The rootfile being created by the $EventGenerator$ contains two trees \texttt{Header} and \texttt{Events}. The \texttt{Header} contains information about the projectile and target and there should be no further explanation necessary, maybe except for \textit{ThetaLow} and \textit{ThetaHigh} being the minimum and maximum theta angles covered by the simulation in which 0~deg is in beam forward direction and 180~deg backward).\\
+The tree \texttt{Events} contains some information which are obvious and some \texttt{Leafs} which might need some comments:
+\begin{itemize}
+	\item \textit{DecayIDOfEventNumber:} If there is more than one gamma in one event (i.e. cascades) each gamma is treated individually and in the root tree there will be more than one entry with the same event number. The $DecayID$ is the index of the gammas in each event (starting from zero), e.g. if there is a decay via a two gammas cascade the first gamma has decay ID 0 and the second one has a new entry in the rootfile with the same \textit{EventNumber}, but decay ID 1.
+	
+	\item \textit{ProjectileVertex} is a 3 dimensional array of floats giving the position of the reaction point, i.e. $ProjectileVertex[0]$ is the x position and so on.
+	
+	\item \textit{VProjectileBeforeTarget} is the normalized Vector of the beam before the target. For the \texttt{Leaf} \textit{...AfterTarget} accordingly.
+	
+	\item \textit{BetaReal} is the beta at the deexcitation point.
+	 
+	\item \textit{VertexGamma} is a 3 dimentional array with the position of the gamma emmittance point.
+	
+	\item \textit{VGamma} is a 3 dimentional array (Vector ``V'') with the normalized direction of the emmitted gamma ray.
+	
+	\item \textit{EGammaDoppler} is the energy of the Doppler boosted gamma. Please note: in some Reconstructors this might be the name for the Doppler corrected gamma energy!
+	
+	\item \textit{ThetaGammaLab} is the theta angle of the Doppler boosted gamma.
+	
+	\item \textit{EnergyProjectile} is the energy of the generated projectile in AMeV.
+	\item \textit{EnergyVertex} is the energy of the projectile at the reaction point in MeV, not AMeV!
+	
+	\item \textit{BGGamma} is zero for events stemming from beam.
+\end{itemize}
+
+
+
+
+
+
+
+\chapter{The Event Builder}
+
+The Event Builder is located in the directory {\ttfamily EventBuilderRIKEN}. As mentioned already for the 
+Event Generator, make sure that the variables {\ttfamily G4INSTALL}
+and {\ttfamily CLHEP\_BASE\_DIR} are set correctly in the file {\ttfamily GNUMakefile}.
+Compile the Event Builder with:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily make all}
+\linebreak
+\linebreak
+
+\section{The Input File(s)}
+
+To change the parameters of the Event Builder, open the file 
+{\ttfamily ./input/EventBuilder.in}. The 
+parameters of this file are listed in Tab.\ref{tab:EVENTBUILDERKEY}.
+The restriction for the Event Generator input file is valid here, too, causing 
+the program to terminate if 
+comments and not existing input keywords are written in this file (before the END statement).
+
+\begin{table}[ht]
+  \centering
+  \label{tab:EVENTBUILDERKEY}
+  %\begin{ruledtabular}
+  \begin{tabular}{|l||c|}
+    \hline
+    Keyword & Parameters \\
+    \hline
+    \hline
+    INPUTFILE                        & $s$             \\
+    OUTPUTFILE                       & $s$             \\
+    SHIELD                           & $f$ $f$ $f$     \\
+    DALI2INCLUDE                     & $i$             \\
+    DALI2FIINCLUDE                   & $i$             \\
+    DALI2ENERGYRESOLUTION            & $i$ $f$ $f$     \\
+    DALI2ENERGYRESOLUTIONINDIVIDUAL  & $s$             \\
+    DALI2TIMERESOLUTION              & $f$ $f$         \\
+    LABR3INCLUDE			& $i$ 		\\
+    LABR3ENERGYRESOLUTION		& $i$ $f$ $f$ $f$	\\
+    LABR3TIMERESOLUTION              & $f$ $f$         \\
+    LABR3HOUSINGTHICKNESS		& $i$ $f$ $f$	\\
+    LABR3INSULATIONTHICKNESS		& $i$ $f$ $f$	\\
+    LABR3TRANSPARENT			& $i$		\\
+    SHOGUNINCLUDE                    & $i$             \\
+    SHOGUNFIINCLUDE                  & $i$             \\
+    SHOGUNHOUSINGTHICKNESSZYZ        & $i$ $f$ $f$ $f$ \\
+    SHOGUNMGOTHICKNESSZYZ            & $i$ $f$ $f$ $f$ \\
+    SHOGUNENERGYRESOLUTION           & $i$ $f$ $f$     \\
+    SHOGUNTIMERESOLUTION             & $f$ $f$         \\
+    GRAPEINCLUDE                     & $i$             \\
+    GRAPEENERGYRESOLUTION            & $i$ $f$ $f$     \\
+    GRAPETIMERESOLUTION              & $f$ $f$         \\
+    SGTINCLUDE                       & $i$             \\
+    SGTENERGYRESOLUTION              & $i$ $f$ $f$     \\
+    SGTTIMERESOLUTION                & $f$ $f$         \\
+    SPHEREINCLUDE                    & $i$ $f$ $f$     \\
+    POSDETECTORONTARGETRESOLUTION    & $f$             \\
+    POSDETECTORAFTERTARGETDISTANCE   & $f$             \\
+    POSDETECTORAFTERTARGETRESOLUTION & $f$             \\
+    ENERGYDETECTORAFTERTARGETINCLUDE & $f$             \\
+    BETARESOLUTION                   & $f$             \\
+    BEAMPIPEINCLUDE                  & $i$             \\
+    BEAMPIPEOLD				& $i$		\\
+    TARGETHOLDERINCLUDE              & $i$             \\
+    STQINCLUDE                       & $i$             \\
+    COLLIMATORINCLUDE                & $i$             \\
+    ZPOSSHIFT				& $f$		\\
+    STATISTICSREDUCTIONFACTOR        & $f$             \\
+    END                              &                 \\
+    
+    \hline
+  \end{tabular}
+\end{table}
+
+\FloatBarrier
+
+The parameters are now discussed subsequently (if not specified differently, 
+the units are cm and degrees, respectively):\hfill{}
+\begin{itemize}
+\item INPUTFILE FILE$_{in}$ \hfill{} \linebreak
+  Gives the location of the input root file generated by the Event Generator.
+\item OUTPUTFILE FILE$_{out}$ \hfill{} \linebreak
+  Gives the location of the output root file generated in this step.
+\item SHIELD $r$ D$_{Pb}$ D$_{Sn}$ \hfill{} \linebreak 
+  
+  Specifies the thickness of absorbermaterial placed along beam pipe. 
+  $r$ is the inner radius of the absorber tube. D$_{Pb}$ D$_{Sn}$ the
+  thickness in cm of the Pb and Sn.
+
+\item DALI2INCLUDE i\hfill{} \linebreak
+  LABR3INCLUDE i\hfill{} \linebreak
+  SHOGUNINCLUDE i\hfill{} \linebreak
+  GRAPEINCLUDE i\hfill{} \linebreak
+  SGTINCLUDE i\hfill{} \linebreak
+  SPHEREINCLUDE i R$_{out}$ R$_{in}$ \hfill{} \linebreak
+  If i=1, these detector arrays are included in the simulation. They require an input file that 
+  specifies their postion and rotation relative to the target. These input files are covered in section
+  \ref{Geometry}. For the sphere, the center is (0,0,0) and thickness is determined by R$_{out}$ - R$_{in}$. 
+\item DALI2FIINCLUDE i\hfill{} \linebreak
+  If i=1, the first interaction point of a $\gamma$-ray is determined for every crystal of the DALI2 array. Note that for
+  cascade decays, every $\gamma$-ray is treated independently. Therefore, if subsequent decays are 
+  registered in the same detector, also two first interaction points are determined.
+\item SHOGUNHOUSINGTHICKNESSXYZ i SIZE$_{x}$ SIZE$_{y}$ SIZE$_{z}$\hfill{} \linebreak
+  If i=1, the SHOGUN detectors are surrounded by an Al-frame of the thickness SIZE$_{x}$ SIZE$_{y}$ SIZE$_{z}$. 
+\item SHOGUNMGOTHICKNESSXYZ i SIZE$_{x}$ SIZE$_{y}$ SIZE$_{z}$\hfill{} \linebreak
+  Thickness of the material between housing and crystal, assumed to be MgO
+\item DALI2ENERGYRESOLUTION i a b\hfill{} \linebreak
+  SHOGUNENERGYRESOLUTION i a b\hfill{} \linebreak
+  GRAPEENERGYRESOLUTION i a b\hfill{} \linebreak
+  SGTENERGYRESOLUTION i a b\hfill{} \linebreak
+  If i=1, the energy resolution has the form: $\Delta E (FWHM) = a + bx$ keV. If i=2, the form is: $\Delta E (FWHM) = ax^{b}$ keV.
+  
+\item LABR3ENERGYRESOLUTION i a b c\hfill{} \linebreak
+  For i=1,2 the energy resolution is calculated by the same formulaes as for the other detectors, argument c is set nan and omitted in this cases. In addition the option i=3 is possible which applies the equation of FWHM given in \cite{Giaz2013910}: $\Delta E (FWHM) = \sqrt{a + bx + cx^2}$.
+
+\item DALI2TIMERESOLUTION a b\hfill{} \linebreak
+  LABR3TIMERESOLUTION a b\hfill{} \linebreak
+  SHOGUNTIMERESOLUTION a b\hfill{} \linebreak
+  GRAPETIMERESOLUTION a b\hfill{} \linebreak
+  SGTTIMERESOLUTION a b\hfill{} \linebreak
+ The time resolution has the form: $\Delta T (FWHM) = a + bx$ ns, where x is the detected energy in keV.
+\item POSDETECTORONTARGETRESOLUTION x\hfill{} \linebreak
+  This keywords determines the precision of the tracking onto the target position from imaginary detectors. x is 
+  given in cm (FWHM).
+\item ENERGYDETECTORAFTERTARGETINCLUDE 0\hfill{} \linebreak
+  If i=1, energy detectors after the target will be inserted and included in the simulation. This option is, however,
+  not really integrated into the simulation, yet.
+\item POSDETECTORAFTERTARGETDISTANCE a\hfill{} \linebreak
+  POSDETECTORAFTERTARGETRESOLUTION b\hfill{} \linebreak
+  The distance a (in cm) of a position sensitive detector after the secondary target and its resolution b in x and 
+  y.
+  
+\item LABR3HOUSINGTHICKNESS i a b\\
+	If i=1 the Aluminum housing of LaBr3 will be included in the simulation, a is the thickness at the front and b is the thickness at the side. In case of the housing of the LaBr3 detectors from Milano the thickness at the front and at the side is 0.5~cm and 0.985~cm, respectively.
+
+\item LABR3INSULATIONTHICKNESS i a b\\
+	If i=1 the insulation of LaBr3 (between crystal and housing) will be included in the simulation, a is the thickness at the front and back and b is the thickness at the side. The material is given in the geometry input file. In case of the insulation of the LaBr3 detectors from Milano the thickness at the front and at the side is 0.10~cm and 0.57~cm, respectively.\\
+	%To Do: verify these dimensions!
+\item LABR3TRANSPARENT i\\
+	If i=1 the housing and the insulation are set transparent (providing that they are chosen). This is just for optical reasons, e.g. if the position of the LaBr3 crystal is wanted to be visible. Note: The edges of the Aluminum housing are red, the edges of the insulation are yellow and the LaBr3 crystal is blue.
+
+
+\item BETARESOLUTION a \hfill{} \linebreak
+  The $\beta$-resolution a~$=\Delta \beta / \beta (FWHM)$ for the time-of-flight measurement before the target.
+  This parameter is necessary for event-by-event Doppler correction of the emitted $\gamma$-rays based on the
+  particles' velocities.
+\item BEAMPIPEINCLUDE i\hfill{} \linebreak
+  If i=1, the beam pipe will be included in the simulation.
+\item BEAMPIPEOLD\\
+	If i=1 the old beam pipe geometry will be used consisting not only of the horizontal beam pipe in z direction (as the new beam pipe) but also includes the vertical pipe for the liquid Helium target. This ``old'' beam pipe geometry should  be used for the Dali-2 LaBr3 combination with LHe target.
+  
+\item ZPOSSHIFT a\\
+	The origin of all geometries, i.e. the point $0|0|0$ is at the front of the target. Especially for thick targets like LHe the detecors should face the center of the target and, hence, need to be shifted along the beam axis. This shift can be done by giving the half thickness of the target as value a for this input parameter. At the moment the shift only effects Dali-2 and, if BEAMPIPEOLD is set to 1, the horizontal pipe of the old beampipe geometry. LaBr3 is automatically shifted by the half target thickness (this feature can be changed in EventBuilder.cc if it is not wanted).
+
+\item TARGETHOLDERINCLUDE i\hfill{} \linebreak
+  If i=1, the targetholder will be included in the simulation. This option requires to insert the target 
+  position, material and thickness in the file:
+\linebreak
+\linebreak
+{\ttfamily ./input/TargetHolder.in}
+\linebreak
+\linebreak
+ The file has the format:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily 0 SetTargetPosition X}\linebreak
+{\ttfamily P MATERIAL THICKNESS\linebreak
+.\linebreak
+.\linebreak
+.\linebreak}
+\linebreak
+\linebreak
+Here, {\ttfamily X} determines the set target position of the target holder, {\ttfamily P} the position of the 
+to be specified next, {\ttfamily MATERIAL} the material name (see file {\ttfamily ./src/MaterialList.cc} for the
+material definitions), and {\ttfamily THICKNESS} the thickness in cm.
+\item STQINCLUDE i\hfill{} \linebreak
+  If i=1, the STQXX triplet will be put after the target. Just for optical reasons at the moment.
+\item STATISTICSREDUCTIONFACTOR a\hfill{} \linebreak
+  The number of events to process can be reduced by putting a value a~$\ge 1$. This might be helpful for some quick detector checks.
+\item END  \hfill{} \linebreak
+  This keyword will end the scan of the input file and can be set at any line within the input file.
+\end{itemize}
+
+\section{The Geometry Input Files}
+\label{Geometry}
+
+The geometries of the $\gamma$-ray arrays are defined in the directory {\ttfamily ./geometry}.
+These input files are slightly different for all the arrays. Therefore,
+they are covered independently. If not specified differently, the units are cm and degrees.
+
+The geometry input files for the arrays are given under:\hfill{} 
+\linebreak
+\linebreak
+{\ttfamily ./geometry/dali2\_geometry\_in.txt}\linebreak
+{\ttfamily ./geometry/LaBr3\_geometry\_in.txt}\linebreak
+{\ttfamily ./geometry/shogun\_geometry\_in.txt}\linebreak
+{\ttfamily ./geometry/grape\_geometry\_in.txt}\linebreak
+{\ttfamily ./geometry/sgt\_geometry\_in.txt}\linebreak
+\linebreak
+\linebreak
+
+All input files must end wit a -1 in the last line.
+To ensure that your detectors have been put to the correct position, you can check the respective 
+{\ttfamily *out.txt} file in the same directory. It has the format 
+\linebreak
+\linebreak
+{\ttfamily ID (TYPE) THETA PHY RADIUS }\linebreak
+\linebreak
+\linebreak
+The parameter {\ttfamily TYPE} is printed only for the DALI2 array.
+
+\subsection{The DALI2 Geometry Input File}
+
+For the DALI2 array, the geometry input file has the form:\hfill{} 
+\linebreak
+\linebreak
+{\ttfamily POSX POSY POSZ PSI THETA PHI ROTSIGN DETTYPE}\linebreak
+{\ttfamily .}\linebreak
+{\ttfamily .}\linebreak
+{\ttfamily .}\linebreak
+\linebreak
+\linebreak
+The crystals' positions are not centered within their outer housing, but shifted by 0.535~cm and 0.7~cm, respectively,
+depending on their type. 
+{\ttfamily ROTSIGN} defines in which direction they are shifted (+1,-1, 0 for no shift). Furthermore, three differet
+types of DALI2 crystals exist, which are covered in Ch.~\ref{ch:DALI2}. Therefore, {\ttfamily DETTYPE} specifies
+the type of crystal at the given position is to be simulated.
+
+\subsection{The LABR3 Geometry Input File}
+
+For the LaBr3 array, the geometry input file has the form:\hfill{} 
+\linebreak
+\linebreak
+{\ttfamily ID POSX POSY POSZ PSI THETA PHI CRYSTALDIAMETER CRYSTALLENGTH INSULATIONMATERIAL}\linebreak
+{\ttfamily .}\linebreak
+{\ttfamily .}\linebreak
+{\ttfamily .}\linebreak
+\linebreak
+\linebreak
+The crystals' positions are from center of the target to the center of the crystal (see also ZPOSSHIFT option). The diameter and length should be fix, but can be changed here if necessary. In case of the Milano LaBr3 detectors the sum of crystal radius, insulation thickness at the side and housing thickness at the side is 6.0~cm and the housing dimensions are final.
+
+\subsubsection{Create new LaBr3 Geometry file}
+
+Although the geometry of the Milano LaBr3 detectors is final a small script is provided to change the theta angle and the distance between center of target and center of LaBr crystal. The script can be found in {\ttfamily ./geometry/createLaBrGeometry/}. It is already compiled but it can be recompiled by typing:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily g++ create\_file.cc -o create}
+\linebreak
+\linebreak
+It needs three input parameter: the name of the output file, the theta angle and the distance. E.g. to create a geometry with angle 30 degrees and distance 42.5~cm type\hfill{}
+\linebreak
+\linebreak
+{\ttfamily ./create output.txt 30.0 42.5}
+\linebreak
+\linebreak
+As Insulation material CH$_2$ is assumed. 
+In the output file it is also written what is the minimum possible distance for the given angle before the Housing of the Milano LaBr is overlapping. Please note that overlapping materials can cause troubles during the simulation, e.g. endless loops in the stepping.\\
+The script can be extended to make it more flexible like change the insulation material or the number of crystals. But at the moment such features are not needed and, hence, not implemented.
+
+
+
+\subsection{The SHOGUN Geometry Input File}
+
+For the DALI3 array, the geometry input file has the form:\hfill{} 
+\linebreak
+\linebreak
+{\ttfamily ID RING TYPE X Y Z RADIUS THETA PHI SIZEX2 SIZEX1 SIZEY2 SIZEY1 SIZEZ}\linebreak
+{\ttfamily .}\linebreak
+{\ttfamily .}\linebreak
+{\ttfamily .}\linebreak
+\linebreak
+\linebreak
+The input values {\ttfamily ID, RING, TYPE,} and {\ttfamily RADIUS} stem from Heiko Scheit's 
+script {\ttfamily det\_place.gawk} and are not used for the placement of the detectors. The crystals are of trapezoidal 
+shape and defined by the last 5 input values. Example configurations can be found under  
+{\ttfamily ./geometry/configurations/*.txt}.
+
+\subsection {{\ttfamily det\_place.gawk}}
+The script {\ttfamily det\_place.gawk} is used to calculate sample configurations.
+One can find some example commands under {\ttfamily det\_place/ListOfCases.txt}.
+The input parameters are:
+\begin{itemize}
+\item -a \hfill{} \linebreak
+  Determines the starting angle of the array
+\item -3, -4, etc.\hfill{} \linebreak
+  The Doppler broadeing of the detectors at $\beta$=0.43.
+\item -g Number1 Number2\hfill{} \linebreak
+  Number1 is starting angle. Number2 defines how many crystal should be put into one common housing.
+\item -t Number\hfill{} \linebreak
+Defines the detector geometry specified in the script.
+\item Number\hfill{} \linebreak
+  Defines how many crystals can be used at maximum.
+\item -w Number\hfill{} \linebreak
+  How much space has the scrip to leave between the different single-, double-, triple-detectors.
+\end{itemize}
+
+
+\subsection{The Grape Geometry Input File}
+
+The Grape detectors are placed according to:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily X Y Z PSI THETA PHI}\linebreak
+{\ttfamily .}\linebreak
+{\ttfamily .}\linebreak
+{\ttfamily .}\linebreak
+\linebreak
+\linebreak
+
+No further explanation is necessary, I think.
+
+\subsection{The SGT Geometry Input File}
+
+The Grape detectors are placed according to:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily X Y Z PHI}\linebreak
+{\ttfamily .}\linebreak
+{\ttfamily .}\linebreak
+{\ttfamily .}\linebreak
+\linebreak
+\linebreak
+
+No further explanation is necessary, I think.
+
+\section{Starting the Simulation}
+To start the simulation in the batch mode, type:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily
+EventBuilder run\_noting.mac
+}
+\linebreak
+\linebreak
+Omitting a filename will bring the Event Builder into the ``standard'' GEANT4 interactive session. 
+To get a view of your detector system, type:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily
+/vis/viewer/flush
+}
+\linebreak
+\linebreak
+in this session. This will open up the DAWN GUI from which you can select the viewing point, distance, 
+light position, etc... Pressing the ``OK'' button will start the drawing.\\
+
+% It might be usefull to save the output of the console to a text file in order to document the exact input values given. In that case type e.g.:\hfill{}
+% \linebreak \linebreak
+% {\ttfamily
+% EventBuilder run\_nothing.mac $>$ console\_output/sim\_001.txt\&
+% }
+% \linebreak \linebreak
+% In that case the progress of the simulation can be seen during runtime by typing:\hfill{}
+% \linebreak \linebreak
+% {\ttfamily
+% less console\_output/sim\_001.txt
+% }
+% \linebreak \linebreak
+% and scroll down with {\ttfamily Shift+g}.
+
+
+
+\section{The Output Rootfile}\label{chap:builderOutputFile}
+
+The output rootfile contains two trees \texttt{Header} and \texttt{ObservedEvents}. The \texttt{Header} contains the information from the Header of the EventGenerator and the information given in the input file of the EventBuilder, i.e. detector positions and resolutions. E.g. the $Dali2Pos[xyz][crystal]$ is a $3\times186$ dimensional array with all the x, y and z positions of all Dali-2 crystals.\\
+The tree \texttt{ObservedEvents} contains again the data from the Event Generator and a \textit{Flag} for each crystal of each detector which is 1 if the crystal has fired and 0 if not. If a \textit{Flag} for one crystal is 1 there is a corresponding entry \textit{EnergyNotCor} which is the not Doppler corrected energy, e.g. if Dali-2 crystal number 5 has measured an energy of 900~keV the $DALI2Flag[4]==1$ and $DALI2EnergyNotCor[4]==900.0$. The real energy can be obtained from the \texttt{Leafs} $EGammaRest$ and $EGammaDoppler$ (both leafs are actually from the Event Generator).\\
+At this point the gammas from cascades are still treated individually and not all of them might be detected. For the later analysis the information how many gammas per event were emitted might be needed. To keep this information the eventbuilder sums up for every new event number how many gammas were originally produced. This number is saved to $ObsGammaMul$ %('Obs' refers to the tree name  ``ObservedEvents'' from the EventBuilder's output file).\\
+
+\textit{BetaReconstructed} is the reconstructed beta from virtual position detectors and includes the given resolution. It should be (within the resolution) the same like \textit{BetaBeforeTarget}.\\
+
+The \textit{GammaDetTypes} are
+\begin{enumerate}
+	\item Dali-2
+	\item Grape
+	\item SGT
+	\item Shogun
+	\item Sphere
+	\item LaBr3
+\end{enumerate}
+
+
+
+
+
+
+
+
+\chapter{The Reconstructor}
+
+\section{The Standard Reconstructor}
+
+The Reconstructor performs the Doppler correction of the simulated $\gamma$-rays.
+It comprises of the single ROOT-macro {\ttfamily RikenFastBeamReconstructor.C} or
+{\ttfamily ShogunReconstructorSimple.C}.
+A shared library can be created with the command:\hfill{}
+\linebreak \linebreak
+{\ttfamily root [0] .L ShogunReconstructorSimple.C+
+}
+\linebreak
+\linebreak
+from the Root command prompt. Afterwards the Reconstructor can be run with the command:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily root [1] ShogunReconstructorSimple()
+}
+\linebreak
+\linebreak
+
+Before running it, you must specify the parameters from the respective {\ttfamily *.in} input
+file, given in Tab.~\ref{tab:RECONSTRUCTORKEY}.
+
+\begin{table}
+  \centering
+  \label{tab:RECONSTRUCTORKEY}
+  %\begin{ruledtabular}
+  \begin{tabular}{|l||c|}
+    \hline
+    Keyword & Parameters \\
+    \hline
+    \hline
+    INPUTFILE                        & $s$             \\
+    OUTPUTFILE                       & $s$             \\
+    SPECTRABINANDRANGE               & $i$ $f$ $f$     \\
+    BETADOPPLERAVERAGE               & $f$             \\
+    BETATOFAVERAGE                   & $f$             \\
+    DECAYPOSITIONZ                   & $f$             \\
+    STATISTICSREDUCTIONFACTOR        & $f$             \\
+    FIFIND                           & $i$             \\
+    DALI2INCLUDE                     & $i$             \\
+    SHOGUNINCLUDE                    & $i$             \\
+    GRAPEINCLUDE                     & $i$             \\
+    SGTINCLUDE                       & $i$             \\
+    END                              &                 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\begin{itemize}
+\item INPUTFILE FILE$_{in}$ \hfill{} \linebreak
+  Gives the location of the input root file generated by the Event Generator.
+\item OUTPUTFILE FILE$_{out}$ \hfill{} \linebreak
+  Gives the location of the output root file generated in this step.
+\item DALI2INCLUDE i\hfill{} \linebreak
+  SHOGUNINCLUDE i\hfill{} \linebreak
+  GRAPEINCLUDE i\hfill{} \linebreak
+  SGTINCLUDE i\hfill{} \linebreak
+  SPHEREINCLUDE i\hfill{} \linebreak
+  If i=1, these detector arrays are included in the simulation. 
+  In the present script, only the SHOGUN data are analyzed.
+\item FIFIND i\hfill{} \linebreak
+  If i=1, the average first interaction point of a full energy peak $\gamma$-ray (with fold=1) is determined.
+  Not used in present script.
+\item BETADOPPLERAVERAGE a \hfill{} \linebreak
+  The average $\beta$-value used for the Doppler correction.
+\item BETATOFAVERAGE a \hfill{} \linebreak
+  The average $\beta$-value in front of the target. This value is necessary for an event-by-event
+  Doppler correction with different incoming velocities.
+\item DECAYPOSITION z\hfill{} \linebreak
+  The average z-positon along the beam-axis shifts as a function of the excited states' lifetimes. This
+  value can be inserted to correct for this effect.
+\item STATISTICSREDUCTIONFACTOR a\hfill{} \linebreak
+  If you have simulated many events in the second step and want to see how the Doppler corrected response might
+  have looked like for limited statistics you can reduce your statistics by putting a value a $\ge 1$.
+\item END  \hfill{} \linebreak
+  This keyword will end the scan of the input file and can be set at any line within the input file.
+\end{itemize}
+
+The Doppler corrected spectra will be stored in a ROOT-file, which you can inspect using the TBrowser. 
+Type:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily root [2] TBrowser b;
+}
+\linebreak
+\linebreak
+and open the folder ``ROOT Files''. It will include the input as well as the output files you used for your 
+event reconstruction.
+
+
+\section{RikenReconstructorDLB} \label{chap_recDLB}
+
+\textbf{UNDER DEVELOPMENT!}\\ % TESTING NEEDED!}\\ Please report bugs to %Philipp.Schrock@riken.jp}\\
+Please report bugs and comments to \href{mailto:Philipp.Schrock@riken.jp}{Philipp.Schrock@riken.jp}\\
+
+The RikenReconstructorDLB is a special Reconstuctor for the combination of Dali-2 and LaBr3. It performs the Doppler correction, can perform the Dali-2 addback and creates histograms with the gamma ray spectra as well as the $\gamma$-$\gamma$ coincidences. Furthermore, the data are stored in a root tree together with the data of the EventBuilder.\\
+This Reconstructor is based on a merge of Dali2Reconstructor.C and RikenReconstructor.C in which the former provided for Dali-2 the Doppler correction, the addback routine and $\gamma$-$\gamma$ coincidences and the latter included Doppler correction for LaBr3. \\
+Create the executable by typing\hfill{}
+\linebreak
+\linebreak
+{\ttfamily make}
+\linebreak
+\linebreak
+and run it with\hfill{}
+\linebreak
+\linebreak
+{\ttfamily ./RikenReconstructorDLB}
+\linebreak
+\linebreak
+
+Before running it, the parameters have to be specified in the {\ttfamily ./input/RikenReconstructorDLB.in} input file, see Chap.~\ref{chap:RecDLBin}.
+%given in Tab.~\ref{tab:RECONSTRUCTORDLBKEY}.
+
+\FloatBarrier
+\subsection{The Input File}\label{chap:RecDLBin}
+
+
+\begin{table}[ht]
+  \centering
+  \label{tab:RECONSTRUCTORDLBKEY}
+  %\begin{ruledtabular}
+  \begin{tabular}{|l||c|}
+    \hline
+    Keyword & Parameters \\
+    \hline
+    \hline
+    INPUTFILE                        & $s$             \\
+    OUTPUTFILE                       & $s$             \\
+    SPECTRABINANDRANGE               & $i$ $f$ $f$     \\
+    BETADOPPLERAVERAGE               & $f$             \\
+    BETATOFAVERAGE                   & $f$             \\
+    DECAYPOSITIONZ                   & $f$             \\
+    STATISTICSREDUCTIONFACTOR        & $f$             \\
+    
+    DALI2INCLUDE                     & $i$             \\
+    FIFIND                           & $i$             \\
+    
+    ADDBACK			& $i$ $f$ \\
+    TRIGGER			& $i$ \\
+    ENERGYTHRESHOLD		& $f$ \\
+    DETECTORLIMIT		& $i$ \\
+    
+    LABR3INCLUDE                     & $i$             \\
+    END                              &                 \\
+    \hline
+  \end{tabular}
+\end{table}
+
+\FloatBarrier
+\begin{itemize}
+\item INPUTFILE FILE$_{in}$ \hfill{} \linebreak
+  Gives the location of the input root file generated by the Event Generator.
+\item OUTPUTFILE FILE$_{out}$ \hfill{} \linebreak
+  Gives the location of the output root file generated in this step.
+\item BETADOPPLERAVERAGE a \hfill{} \linebreak
+  The average $\beta$-value used for the Doppler correction.
+\item BETATOFAVERAGE a \hfill{} \linebreak
+  The average $\beta$-value in front of the target. This value is necessary for an event-by-event
+  Doppler correction with different incoming velocities.
+\item DECAYPOSITION z\hfill{} \linebreak
+  The average z-positon along the beam-axis shifts as a function of the excited states' lifetimes. This
+  value can be inserted to correct for this effect.
+\item STATISTICSREDUCTIONFACTOR a\hfill{} \linebreak
+  If you have simulated many events in the second step and want to see how the Doppler corrected response might
+  have looked like for limited statistics you can reduce your statistics by putting a value a $\ge 1$.
+\item DALI2INCLUDE i\hfill{} \linebreak
+  LABR3INCLUDE i\hfill{} \linebreak
+  If i=1, these detector arrays are included in the simulation. 
+\item FIFIND i\hfill{} \linebreak
+  If i=1, the average first interaction point of a full energy peak $\gamma$-ray (with fold=1) is determined in Dali-2.
+  
+  
+\item ADDBACK i f \\
+	If i=1 an addback routine for Dali-2 will be startet with maximum distance f (in cm, should be around 15)
+\item TRIGGER i\\
+	If i=1 spectra of trigger probabilities will be created for Dali-2. There will be three spectra: 0 corresponds to all, 1 to backward direction, 2 to forward direction
+\item ENERGYTHRESHOLD f\\
+	All hits with uncorrected energy below the given threshold f (in keV) will be ignored.
+\item DETECTORLIMIT i\hfill{} \linebreak
+	All Dali-2 crystals from number i on are treated as ``in forward direction''.
+
+\item END  \hfill{} \linebreak
+  This keyword will end the scan of the input file and can be set at any line within the input file.
+\end{itemize}
+
+
+
+
+
+\subsection{The Output Rootfile}
+
+
+The rootfile created by the ReconstructorDLB contains histograms for LaBr3 and Dali-2. For both detectors the single gamma energy spectra are saved as well as the $\gamma$-$\gamma$ coincidences including the coincidences between both detectors. For LaBr3 the names of the most interesting histograms are\hfill{}
+% \linebreak
+\linebreak
+{\ttfamily labr3\_doppler\_gamma[i]\\
+labr3\_doppler\_gamma\_gamma[i]}
+% \linebreak
+\linebreak
+with the single $\gamma$-spectra ``\_gamma[i]'' and the coincidence spectra ``\_gamma\_gamma[i]'' where i=1...3 is the number of $\gamma$-rays produced per event (see $ObsGammaMul$ in Chap.~\ref{chap:builderOutputFile}). Four or more $\gamma$-rays per event are not in separate spectra. The spectra with i=0 show all $\gamma$-multiplicities as they will look like in an experiment.\\
+
+For Dali-2 the Doppler corrected energy spectra are\hfill{}
+% \linebreak
+\linebreak
+{\ttfamily 
+dali2\_doppler\\
+h\_dali2\_doppler\_addback[i]\\
+dali2\_doppler\_gamma\_gamma}
+% \linebreak
+\linebreak
+without and with addback and for $\gamma$-$\gamma$ coincidences, respectively. In case of the spectra with addback i=0 means all dai-2 crystals, i=1 only backward angles and i=2 only forward (as defined with DETECTORLIMIT).\\
+
+In addition the $\gamma$-$\gamma$ coincidence matrix for the combination of Dali-2 and LaBr3 can be found in\hfill{}
+% \linebreak
+\linebreak
+{\ttfamily labr3\_dali2\_doppler\_gamma\_gamma\\
+h\_labr3\_dali2addback\_gamma\_gamma}
+% \linebreak
+\linebreak
+again without and with addback for dali-2, respectively.\\
+
+Furthermore, there is a tree named ``ReconstructedEvents'' containing all data from the Builder as well as the Doppler corrected energies. The latter have names starting with ``Rec''. The new \texttt{Leafs} are zero suppressed, i.e. the array index doesn't correspond to the detector ID but to the number of hit. The \texttt{Leafs} are:\hfill{}
+% \linebreak
+\linebreak
+{\ttfamily RecLaBr3CrystalMul\\
+RecLaBr3CrystalId\\
+RecLaBr3CrystalEnergyNotCorrected\\
+RecLaBr3CrystalEnergyDopplerCorrected}
+% \linebreak
+\linebreak
+where ``Mul'' gives the number of hits, ``Id'' is the number of crystal fired and the energies - dito.\\
+
+Not zero suppressed energies for LaBr3 are stored in
+\linebreak
+{\ttfamily RecLaBr3EnergyDopplerCorrected[i]
+\linebreak
+in which i=0...7 is the number of the LaBr crystal.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\chapter{Simulation Examples}
+
+\section{DALI2 Efficiency from a $^{60}$Co source}
+
+\subsection{Running the Event Generator}
+Your input file {\ttfamily ./EventGenerator/input/EventGenerator.in} should have the following structure:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily %\small
+  GAMMAINPUT ./input/60Co.in\linebreak
+  NUMBEROFEVENTS 100000\linebreak
+  OUTPUTFILE ../tutorial/60CoGenerator.root\linebreak
+  END
+}
+\linebreak
+\linebreak
+The $\gamma$-ray decay file should be {\ttfamily ./EventGenerator/input/60Co.in} and have the following structure:\hfil{}
+\linebreak
+\linebreak
+{\ttfamily
+  LEVEL  0  00.00 0000.000 0.00\linebreak
+  LEVEL  1  00.12 1332.510 0.90\linebreak
+  LEVEL  2  00.00 2158.610 0.00\linebreak
+  LEVEL  3  99.88 2505.748 0.30\linebreak
+  DECAY  1  0 99.9826\linebreak
+  DECAY  2  1 00.0076\linebreak
+  DECAY  2  0 00.0012\linebreak
+  DECAY  3  2 00.0075\linebreak
+  DECAY  3  1 99.85\linebreak
+  DECAY  2  0 00.0000020\linebreak
+}
+\linebreak
+Go into the directory {\ttfamily EventGenerator} and type\hfill{}
+\linebreak
+\linebreak
+{\ttfamily
+  EventGenerator run\_nothing.mac
+}
+\linebreak
+\linebreak
+into the command line.
+This will start the Event Generator and create the root output file {\ttfamily ./tutorial/60CoGenerator.root}.
+
+\subsection{Running the Event Builder}
+Your input file {\ttfamily ./EventBuilderRIKEN/input/EventBuilder.in} should have the following structure:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily %\small
+  INPUTFILE ../tutorial/60CoGenerator.root\linebreak
+  OUTPUTFILE ../tutorial/60CoBuilder.root\linebreak
+  SHOGUNINCLUDE 1\linebreak
+  SHOGUNENERGYRESOLUTION 2 0.7 0.5\linebreak
+  END
+}
+\linebreak
+\linebreak
+go into the directory {\ttfamily EventBuilderRIKEN} and type\hfill{}
+\linebreak
+{\ttfamily
+  EventBuilder run\_nothing.mac
+}
+\linebreak
+\linebreak
+into the command line. 
+This will run the Event Builder and create the root output file {\ttfamily ./tutorial/60CoBuilder.root}.
+
+\subsection{Running the Reconstructor}
+Your input file {\ttfamily .Reconstructor/input/Dali2Reconstructor.in} should have the following structure:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily %\small
+  INPUTFILE ../tutorial/60CoBuilder.root\linebreak
+  OUTPUTFILE ../tutorial/60CoReconstructor.root\linebreak
+  SPECTRABINANDRANGE 400 0. 4000.\linebreak
+  END
+}
+\linebreak
+\linebreak
+Go into the directory {\ttfamily Reconstructor} and open a ROOT-session by typing {\ttfamily root}
+into the shell. Yuo have to load/compile the libray by typing:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily
+ root[].L ShogunReconstructorSimple.C+\linebreak
+}
+\linebreak
+The reconstruction process is started by typing:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily
+root[]ShogunReconstructorSimple()\linebreak
+}
+\linebreak
+You can take a look into the created spectra with the TBrowser by typing:\hfill{}
+\linebreak
+\linebreak
+{\ttfamily
+root[]TBrowser b;\linebreak
+}
+\linebreak
+
+
+\chapter{To-Do List}
+
+It is understood that the simulation has room for improvements. The subsequent list enumarates objects
+and features that need to be worked on:
+
+\begin{itemize}
+
+\item The longitudinal momentum spread from the fragmentation is included (Goldhaber formula~\cite{GOLDHABER}), however,
+the perpendicular momentum spread is not. Instead, a $\vartheta$-spread has to be given by the input file.
+\item The Angular straggling from the energy loss of the heavy ion in the target is not included.
+\item The $\gamma$-ray angular distribution is isotropic.
+\item An important issue for a precise Doppler correction is an accurate measurement of 
+the heavy ion trajectory. It is desirable to improve the users options and to enable the placing
+of position detectors at different positions along the beam axis.
+\item A routine that checks if the detectors overlap has to be implemented.
+\item A realistic add-back routine has to be implemented.\\
+(Note: the routine from Dali2Reconstructor.C works quite reasonable)
+\end{itemize}
+
+\bibliographystyle{unsrt}  
+\bibliography{bib}
+
+\end{document}

@@ -1,0 +1,53 @@
+This is BibTeX, Version 0.99d (TeX Live 2013/Debian)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: Manual.aux
+The style file: unsrt.bst
+Database file #1: bib.bib
+Warning--empty title in takeuchi:2014:nima
+Warning--empty title in ROOT
+Warning--empty journal in ROOT
+Warning--empty year in ROOT
+Warning--empty title in BORREL
+Warning--empty title in GOLDHABER
+You've used 5 entries,
+            1791 wiz_defined-function locations,
+            470 strings with 3961 characters,
+and the built_in function-call counts, 775 in all, are:
+= -- 49
+> -- 42
+< -- 0
++ -- 17
+- -- 12
+* -- 53
+:= -- 144
+add.period$ -- 10
+call.type$ -- 5
+change.case$ -- 1
+chr.to.int$ -- 0
+cite$ -- 11
+duplicate$ -- 41
+empty$ -- 76
+format.name$ -- 12
+if$ -- 155
+int.to.chr$ -- 0
+int.to.str$ -- 5
+missing$ -- 5
+newline$ -- 23
+num.names$ -- 5
+pop$ -- 20
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 15
+stack$ -- 0
+substring$ -- 9
+swap$ -- 4
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 6
+while$ -- 6
+width$ -- 6
+write$ -- 42
+(There were 6 warnings)
