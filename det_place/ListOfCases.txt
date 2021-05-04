@@ -1,0 +1,48 @@
+case  1 gawk -a 10 -2 -t 4 5000                       # made with dali3_angles.gawk
+case  2 gawk -a 10 -3 -t 4 5000
+case  3 gawk -a 10 -4 -t 4 5000
+case  4 gawk -a 10 -5 -t 6 5000
+case  5 gawk -a 10 -6 -t 6 5000
+case  6 gawk -a 10 -7 -t 6 5000
+case  7 gawk -a 10 -4 -t 5 5000
+case  8 gawk -a 10 -4 -t 24 5000                      # From here on det_place.gawk is used
+case  9 gawk -a 10 -4 -t 25 5000 
+case 10 ./det_place.gawk -a 10 -2 -t 5 304
+case 11 ./det_place.gawk -a 10 -4 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 5 909
+case 12 ./det_place.gawk -a 10 -4 -t 7 5000           # Added 0.7 mm of Al around every LaBr3 detector the calculations are performed by increasing the
+                                                      # crystalsize to 16.4 x 41.4 x 81.4 mm see ./backups/det_place081010.gawk
+case 13 ./det_place.gawk -a 10 -4 -t 5 5000 -w 0.1    # the crystal wall used in the simulations will be only 0.7 mm so we have 0.3 mm space for the placement
+case 14 ./det_place.gawk -a 10 -4 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 5 1000 -w 0.07           
+case 15 ./det_place.gawk -a 15 -2.5 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 5 1000 -w 0.2
+case 16 ./det_place.gawk -a 15 -3.0 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 5 1000 -w 0.2
+case 17 ./det_place.gawk -a 15 -3.5 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 5 1000 -w 0.2
+case 18 ./det_place.gawk -a 15 -2.5 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 8 1000 -w 0.2
+case 19 ./det_place.gawk -a 15 -3.0 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 8 1000 -w 0.2
+case 20 ./det_place.gawk -a 15 -3.0 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 8 1000 -w 0.2
+case 21 ./det_place.gawk -a 15 -2.5 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 9 1000 -w 0.2
+case 22 ./det_place.gawk -a 15 -3.0 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 9 1000 -w 0.2
+case 23 ./det_place.gawk -a 15 -3.5 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 9 1000 -w 0.2
+case 24 ./det_place.gawk -a 15 -4.0 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 9 1000 -w 0.2
+case 25 ./det_place.gawk -a 15 -3.0 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 10 1000 -w 0.2 
+From now on I change to the Heikos new version
+The optimization is always for beta=0.4295
+case 26 ./det_place.gawk -a 10 -4 --addtype 5 1.5 1.5 4 4 4 -t 5 2000
+case 27 ./det_place.gawk -a 15 -2.5 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 5 1500 -w 0.2
+        Needs 1059 Detectors. At the moment probably the best choice
+case 27b has 4 % resolution at 662 keV
+case 27c has 3 % resolution and the housing and insulation are removed
+case 28 ./det_place.gawk -a 15 -3. -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 5 1500 -w 0.2
+        Needs only 747 detectors, but the solid angle coverage is somewhat lower
+case 29 ./det_place.gawk -a 15 -2.5 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 5 1500 -w 0.0
+        No spacing between detectors
+case 30 ./det_place.gawk -a 15 -2.5 -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 6 1500 -w 0.2
+        100 mm long crystals
+case 31 ./det_place.gawk -a 15 -3. -g 10 1 -g 20 2 -g 35 3 -g 90 2 -g 120 1 -t 7 1500 -w 0.2
+        20 x 20 x 100 mm crystals=
+case 32 ./det_place.gawk -a 15 -2.5 -g 10 1 -t 15 1500 -w 0.2
+        trapezoid crystals
+case 33 is a squared configuration not produced by det_place
+     15 x 40 x 80 mm3, 960 detectors, 2mm material.
+case 33b the position of the detectors is the same, but the Al and teflon is removed.
+case 34 same as case 33, however without any material in between.
+     Therefore, the position is more densely packed
